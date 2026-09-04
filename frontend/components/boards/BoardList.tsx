@@ -2,28 +2,37 @@
 
 import type { BoardSummary } from "@/types";
 import { BoardCard } from "./BoardCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type BoardListProps = {
   boards: BoardSummary[];
   currentUserId?: string;
-  onDelete?: (boardId: string) => void;
   emptyLabel?: string;
   emptyHint?: string;
+  onCreate?: () => void;
+  onRename?: (board: BoardSummary) => void;
+  onShare?: (board: BoardSummary) => void;
+  onDelete?: (board: BoardSummary) => void;
 };
 
 export function BoardList({
   boards,
   currentUserId,
+  emptyLabel = "No boards yet",
+  emptyHint = "Create your first board to get started.",
+  onCreate,
+  onRename,
+  onShare,
   onDelete,
-  emptyLabel = "No boards here yet",
-  emptyHint = "Create a board to get started.",
 }: BoardListProps) {
   if (boards.length === 0) {
     return (
-      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-8 py-12 text-center">
-        <p className="font-medium text-[var(--ink)]">{emptyLabel}</p>
-        <p className="mt-1 text-sm text-[var(--muted)]">{emptyHint}</p>
-      </div>
+      <EmptyState
+        title={emptyLabel}
+        description={emptyHint}
+        actionLabel={onCreate ? "+ Create Board" : undefined}
+        onAction={onCreate}
+      />
     );
   }
 
@@ -34,6 +43,8 @@ export function BoardList({
           key={board.id}
           board={board}
           currentUserId={currentUserId}
+          onRename={onRename}
+          onShare={onShare}
           onDelete={onDelete}
         />
       ))}

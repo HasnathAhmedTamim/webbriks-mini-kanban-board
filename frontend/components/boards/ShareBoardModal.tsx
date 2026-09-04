@@ -25,7 +25,7 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
     if (!isOwner) return;
     try {
       await shareBoard.mutateAsync(email.trim().toLowerCase());
-      notify.success("Invite sent. They can open this board now.");
+      notify.success("Member added successfully");
       setEmail("");
     } catch (error) {
       notify.error(error, "We couldn’t add that person. Make sure they’re registered.");

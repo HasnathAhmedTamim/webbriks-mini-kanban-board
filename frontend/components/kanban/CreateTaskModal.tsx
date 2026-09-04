@@ -1,8 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useCreateTask } from "@/hooks/useBoards";
 import { notify } from "@/lib/notify";
+import { taskSchema } from "@/lib/validation";
+import type { Column } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
@@ -10,45 +12,79 @@ import { Modal } from "@/components/ui/Modal";
 type CreateTaskModalProps = {
   open: boolean;
   boardId: string;
+  columns: Column[];
   columnId: string | null;
   onClose: () => void;
 };
 
-export function CreateTaskModal({ open, boardId, columnId, onClose }: CreateTaskModalProps) {
+export function CreateTaskModal({
+  open,
+  boardId,
+  columns,
+  columnId,
+  onClose,
+}: CreateTaskModalProps) {
   const createTask = useCreateTask(boardId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedColumnId, setSelectedColumnId] = useState(columnId || "");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (open) {
+      setSelectedColumnId(columnId || columns[0]?.id || "");
+      setTitle("");
+      setDescription("");
+      setErrors({});
+    }
+  }, [open, columnId, columns]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!columnId) return;
+    const parsed = taskSchema.safeParse({
+      title,
+      description: description.trim() || undefined,
+      columnId: selectedColumnId,
+    });
+    if (!parsed.success) {
+      const next: Record<string, string> = {};
+      parsed.error.issues.forEach((issue) => {
+        next[String(issue.path[0])] = issue.message;
+      });
+      setErrors(next);
+      return;
+    }
+
     try {
       await createTask.mutateAsync({
-        columnId,
-        title: title.trim(),
-        description: description.trim() || undefined,
+        columnId: parsed.data.columnId,
+        title: parsed.data.title,
+        description: parsed.data.description,
       });
-      notify.success("Task added.");
-      setTitle("");
-      setDescription("");
+      notify.success("Task created successfully");
       onClose();
     } catch (error) {
-      notify.error(error, "We couldn’t add that task.");
+      notify.error(error, "Failed to create task");
     }
   }
 
   return (
     <Modal
       open={open}
-      title="Add a task"
+      title="Create New Task"
       onClose={onClose}
       footer={
         <>
           <Button variant="secondary" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button form="create-task-form" type="submit" loading={createTask.isPending}>
-            Add task
+          <Button
+            form="create-task-form"
+            type="submit"
+            loading={createTask.isPending}
+            loadingText="Creating…"
+          >
+            Create
           </Button>
         </>
       }
@@ -57,20 +93,35 @@ export function CreateTaskModal({ open, boardId, columnId, onClose }: CreateTask
         <Input
           label="Title"
           name="title"
-          required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What needs to be done?"
+          placeholder="Fix login issue"
+          error={errors.title}
         />
         <label className="block space-y-1.5 text-sm">
-          <span className="font-medium text-[var(--ink)]">Details (optional)</span>
+          <span className="font-medium text-[var(--ink)]">Description</span>
           <textarea
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add a short note if it helps"
-            className="min-h-24 w-full rounded-lg border border-[var(--line)] px-3 py-2 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+            placeholder="Optional details"
+            className="min-h-24 w-full rounded-md border border-[var(--line)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
           />
+        </label>
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium text-[var(--ink)]">Column</span>
+          <select
+            value={selectedColumnId}
+            onChange={(e) => setSelectedColumnId(e.target.value)}
+            className="w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+          >
+            {columns.map((col) => (
+              <option key={col.id} value={col.id}>
+                {col.name}
+              </option>
+            ))}
+          </select>
+          {errors.columnId ? <span className="text-xs text-[var(--danger)]">{errors.columnId}</span> : null}
         </label>
       </form>
     </Modal>

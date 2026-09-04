@@ -22,15 +22,38 @@ const boardInclude = {
 
 export const boardService = {
   async list(userId: string) {
-    return prisma.board.findMany({
+    const boards = await prisma.board.findMany({
       where: {
         OR: [{ ownerId: userId }, { members: { some: { userId } } }],
       },
       include: {
         owner: { select: { id: true, name: true, email: true } },
+        members: {
+          take: 4,
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
+        columns: {
+          select: {
+            _count: { select: { tasks: true } },
+          },
+        },
         _count: { select: { members: true, columns: true } },
       },
       orderBy: { updatedAt: "desc" },
+    });
+
+    return boards.map((board) => {
+      const taskCount = board.columns.reduce((sum, col) => sum + col._count.tasks, 0);
+      const { columns, ...rest } = board;
+      return {
+        ...rest,
+        _count: {
+          ...board._count,
+          tasks: taskCount,
+        },
+      };
     });
   },
 

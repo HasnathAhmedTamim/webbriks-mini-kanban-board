@@ -36,6 +36,22 @@ export function useCreateBoard() {
   });
 }
 
+export function useUpdateBoard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { boardId: string; name: string }) => {
+      const { data } = await api.patch<{ data: BoardDetail }>(`/boards/${payload.boardId}`, {
+        name: payload.name,
+      });
+      return data.data;
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["boards"] });
+      qc.invalidateQueries({ queryKey: ["boards", vars.boardId] });
+    },
+  });
+}
+
 export function useDeleteBoard() {
   const qc = useQueryClient();
   return useMutation({
@@ -73,6 +89,27 @@ export function useCreateColumn(boardId: string) {
     mutationFn: async (name: string) => {
       const { data } = await api.post(`/boards/${boardId}/columns`, { name });
       return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
+  });
+}
+
+export function useUpdateColumn(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { columnId: string; name: string }) => {
+      const { data } = await api.patch(`/columns/${payload.columnId}`, { name: payload.name });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
+  });
+}
+
+export function useDeleteColumn(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (columnId: string) => {
+      await api.delete(`/columns/${columnId}`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
   });
