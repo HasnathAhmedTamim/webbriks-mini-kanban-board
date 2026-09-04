@@ -92,20 +92,30 @@ export const taskService = {
     return prisma.$transaction(async (tx) => {
       const sourceColumnId = task.columnId;
       const targetColumnId = data.targetColumnId;
+      const dest = Math.max(0, data.targetPosition);
 
       const sourceTasks = await tx.task.findMany({
         where: { columnId: sourceColumnId },
         orderBy: { position: "asc" },
       });
 
-      const sourceIds = sourceTasks.map((t) => t.id).filter((id) => id !== taskId);
-
+      // Same column: remove then insert at final index, then reindex 0..n-1.
       if (sourceColumnId === targetColumnId) {
-        const nextIds = [...sourceIds];
-        const clamped = Math.min(data.targetPosition, nextIds.length);
-        nextIds.splice(clamped, 0, taskId);
-        await reindexTasks(tx, sourceColumnId, nextIds);
+        const currentIndex = sourceTasks.findIndex((t) => t.id === taskId);
+        if (currentIndex < 0) {
+          throw new AppError(404, MESSAGES.NOT_FOUND);
+        }
 
+        const orderedIds = sourceTasks.map((t) => t.id).filter((id) => id !== taskId);
+        const clamped = Math.min(dest, orderedIds.length);
+
+        // No-op only when the final index is unchanged.
+        if (currentIndex === clamped) {
+          return task;
+        }
+
+        orderedIds.splice(clamped, 0, taskId);
+        await reindexTasks(tx, sourceColumnId, orderedIds);
         return tx.task.findUniqueOrThrow({ where: { id: taskId } });
       }
 
@@ -114,8 +124,9 @@ export const taskService = {
         orderBy: { position: "asc" },
       });
 
+      const sourceIds = sourceTasks.map((t) => t.id).filter((id) => id !== taskId);
       const targetIds = targetTasks.map((t) => t.id);
-      const clamped = Math.min(data.targetPosition, targetIds.length);
+      const clamped = Math.min(dest, targetIds.length);
       targetIds.splice(clamped, 0, taskId);
 
       await reindexTasks(tx, sourceColumnId, sourceIds);

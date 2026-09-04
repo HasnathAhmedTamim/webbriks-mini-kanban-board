@@ -59,7 +59,7 @@ model Column {
   board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   tasks Task[]
 
-  @@index([boardId])
+  @@index([boardId, position])
 }
 
 model Task {
@@ -73,5 +73,5 @@ model Task {
 
   column Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
 
-  @@index([columnId])
+  @@index([columnId, position])
 }
