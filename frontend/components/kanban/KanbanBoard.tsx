@@ -167,11 +167,11 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         targetColumnId: targetColumn.id,
         targetPosition: Math.max(0, targetPosition),
       });
-      notify.success("Task moved", {
-        description: "The new order is saved.",
+      notify.success("Moved!", {
+        description: "Your card is in its new place.",
       });
     } catch (error) {
-      notify.error(error, "Failed to move task");
+      notify.error(error, "We couldn’t move that card. It’s back where it was.");
       setColumns(board.columns);
     }
   };
