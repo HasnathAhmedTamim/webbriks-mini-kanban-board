@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -19,6 +19,7 @@ import {
   useMoveTask,
   useUpdateColumn,
 } from "@/hooks/useBoards";
+import { findTaskPlacement, reindexColumns } from "@/lib/boardMove";
 import { notify } from "@/lib/notify";
 import type { BoardDetail, Column, Task } from "@/types";
 import { KanbanColumn } from "./KanbanColumn";
@@ -34,6 +35,8 @@ type KanbanBoardProps = {
   board: BoardDetail;
 };
 
+type Placement = { columnId: string; position: number };
+
 function findColumn(columns: Column[], id: string) {
   return columns.find((column) => column.id === id || column.tasks.some((t) => t.id === id));
 }
@@ -43,7 +46,12 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
   const updateColumn = useUpdateColumn(board.id);
   const deleteColumn = useDeleteColumn(board.id);
   const deleteTask = useDeleteTask(board.id);
+
   const [columns, setColumns] = useState<Column[]>(board.columns);
+  const columnsRef = useRef(columns);
+  const draggingRef = useRef(false);
+  const dragOriginRef = useRef<Placement | null>(null);
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [createColumnId, setCreateColumnId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -53,20 +61,45 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
   const [deleteTaskTarget, setDeleteTaskTarget] = useState<Task | null>(null);
 
   useEffect(() => {
+    columnsRef.current = columns;
+  }, [columns]);
+
+  useEffect(() => {
+    if (draggingRef.current) return;
     setColumns(board.columns);
+    columnsRef.current = board.columns;
   }, [board.columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
+      activationConstraint: { distance: 8 },
     })
   );
 
-  const onDragStart = (event: DragStartEvent) => {
-    const task = event.active.data.current?.task as Task | undefined;
-    if (task) setActiveTask(task);
+  const columnHandlers = {
+    onAddTask: setCreateColumnId,
+    onOpenTask: setEditingTask,
+    onDeleteTask: setDeleteTaskTarget,
+    onRename: (col: Column) => {
+      setRenameColumn(col);
+      setRenameValue(col.name);
+    },
+    onDelete: setDeleteColumnTarget,
   };
 
+  const onDragStart = (event: DragStartEvent) => {
+    draggingRef.current = true;
+    const task = event.active.data.current?.task as Task | undefined;
+    if (task) {
+      setActiveTask(task);
+      const origin = findTaskPlacement({ columns: columnsRef.current }, task.id);
+      dragOriginRef.current = origin
+        ? { columnId: origin.columnId, position: origin.position }
+        : null;
+    }
+  };
+
+  /** Cross-column preview only — same-column order is finalized on drop. */
   const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -74,60 +107,74 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    setColumns((prev) => {
-      const activeColumn = findColumn(prev, activeId);
-      const overColumn = findColumn(prev, overId);
-      if (!activeColumn || !overColumn || activeColumn.id === overColumn.id) {
-        return prev;
+    const prev = columnsRef.current;
+    const activeColumn = findColumn(prev, activeId);
+    const overColumn = findColumn(prev, overId);
+
+    if (!activeColumn || !overColumn || activeColumn.id === overColumn.id) {
+      return;
+    }
+
+    const activeTaskIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
+    if (activeTaskIndex < 0) return;
+
+    const moving = activeColumn.tasks[activeTaskIndex];
+    const overIsColumn = over.data.current?.type === "column";
+    const overTaskIndex = overColumn.tasks.findIndex((t) => t.id === overId);
+    const insertIndex = overIsColumn
+      ? overColumn.tasks.length
+      : overTaskIndex >= 0
+        ? overTaskIndex
+        : overColumn.tasks.length;
+
+    const next = prev.map((column) => {
+      if (column.id === activeColumn.id) {
+        return { ...column, tasks: column.tasks.filter((t) => t.id !== activeId) };
       }
-
-      const activeTaskIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
-      if (activeTaskIndex < 0) return prev;
-
-      const moving = activeColumn.tasks[activeTaskIndex];
-      const overIsColumn = over.data.current?.type === "column";
-      const overTaskIndex = overColumn.tasks.findIndex((t) => t.id === overId);
-      const insertIndex = overIsColumn
-        ? overColumn.tasks.length
-        : overTaskIndex >= 0
-          ? overTaskIndex
-          : overColumn.tasks.length;
-
-      return prev.map((column) => {
-        if (column.id === activeColumn.id) {
-          return { ...column, tasks: column.tasks.filter((t) => t.id !== activeId) };
-        }
-        if (column.id === overColumn.id) {
-          const nextTasks = [...column.tasks];
-          nextTasks.splice(insertIndex, 0, { ...moving, columnId: column.id });
-          return { ...column, tasks: nextTasks };
-        }
-        return column;
-      });
+      if (column.id === overColumn.id) {
+        const nextTasks = column.tasks.filter((t) => t.id !== activeId);
+        nextTasks.splice(
+          Math.min(insertIndex, nextTasks.length),
+          0,
+          { ...moving, columnId: column.id }
+        );
+        return { ...column, tasks: nextTasks };
+      }
+      return column;
     });
+
+    columnsRef.current = next;
+    setColumns(next);
   };
 
-  const onDragEnd = async (event: DragEndEvent) => {
+  const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
+    draggingRef.current = false;
+
+    const origin = dragOriginRef.current;
+    dragOriginRef.current = null;
 
     if (!over) {
       setColumns(board.columns);
+      columnsRef.current = board.columns;
       return;
     }
 
     const activeId = String(active.id);
     const overId = String(over.id);
+    let nextColumns = columnsRef.current;
 
-    let nextColumns = columns;
     const activeColumn = findColumn(nextColumns, activeId);
     const overColumn = findColumn(nextColumns, overId);
 
     if (!activeColumn || !overColumn) {
       setColumns(board.columns);
+      columnsRef.current = board.columns;
       return;
     }
 
+    // Same-column reorder on drop (not during dragOver — more reliable).
     if (activeColumn.id === overColumn.id) {
       const oldIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
       const newIndex =
@@ -137,43 +184,61 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
 
       if (oldIndex < 0 || newIndex < 0) {
         setColumns(board.columns);
+        columnsRef.current = board.columns;
         return;
       }
 
-      nextColumns = nextColumns.map((column) => {
-        if (column.id !== activeColumn.id) return column;
-        return {
-          ...column,
-          tasks: arrayMove(column.tasks, oldIndex, newIndex).map((task, index) => ({
-            ...task,
-            position: index,
-          })),
-        };
-      });
-      setColumns(nextColumns);
+      if (oldIndex !== newIndex) {
+        nextColumns = nextColumns.map((column) => {
+          if (column.id !== activeColumn.id) return column;
+          return { ...column, tasks: arrayMove(column.tasks, oldIndex, newIndex) };
+        });
+      }
     }
+
+    nextColumns = reindexColumns(nextColumns);
+    columnsRef.current = nextColumns;
+    setColumns(nextColumns);
 
     const targetColumn = findColumn(nextColumns, activeId);
     if (!targetColumn) {
       setColumns(board.columns);
+      columnsRef.current = board.columns;
       return;
     }
 
     const targetPosition = targetColumn.tasks.findIndex((t) => t.id === activeId);
+    if (targetPosition < 0) return;
 
-    try {
-      await moveTask.mutateAsync({
+    // Compare against where the drag started — not the live React Query cache.
+    if (
+      origin &&
+      origin.columnId === targetColumn.id &&
+      origin.position === targetPosition
+    ) {
+      return;
+    }
+
+    moveTask.mutate(
+      {
         taskId: activeId,
         targetColumnId: targetColumn.id,
-        targetPosition: Math.max(0, targetPosition),
-      });
-      notify.success("Moved!", {
-        description: "Your card is in its new place.",
-      });
-    } catch (error) {
-      notify.error(error, "We couldn’t move that card. It’s back where it was.");
-      setColumns(board.columns);
-    }
+        targetPosition,
+      },
+      {
+        onError: (error) => {
+          notify.error(error, "Failed to move task. Changes have been reverted.");
+        },
+      }
+    );
+  };
+
+  const onDragCancel = () => {
+    setActiveTask(null);
+    draggingRef.current = false;
+    dragOriginRef.current = null;
+    setColumns(board.columns);
+    columnsRef.current = board.columns;
   };
 
   return (
@@ -184,27 +249,21 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
+        onDragCancel={onDragCancel}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-start lg:overflow-x-auto">
           {columns.map((column, index) => (
             <KanbanColumn
               key={column.id}
               column={column}
               index={index}
-              onAddTask={setCreateColumnId}
-              onOpenTask={setEditingTask}
-              onDeleteTask={setDeleteTaskTarget}
-              onRename={(col) => {
-                setRenameColumn(col);
-                setRenameValue(col.name);
-              }}
-              onDelete={setDeleteColumnTarget}
+              {...columnHandlers}
             />
           ))}
         </div>
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask ? (
-            <div className="w-72 rounded-lg border border-[var(--accent)] bg-[var(--surface)] p-3 shadow-sm">
+            <div className="w-72 cursor-grabbing rounded-lg border border-[var(--accent)] bg-[var(--surface)] p-3 shadow-md">
               <p className="text-sm font-medium">{activeTask.title}</p>
             </div>
           ) : null}
@@ -236,11 +295,17 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         onClose={() => setRenameColumn(null)}
         footer={
           <>
-            <Button variant="secondary" type="button" onClick={() => setRenameColumn(null)}>
+            <Button
+              variant="secondary"
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={() => setRenameColumn(null)}
+            >
               Cancel
             </Button>
             <Button
               type="button"
+              className="w-full sm:w-auto"
               loading={updateColumn.isPending}
               loadingText="Saving…"
               onClick={async () => {

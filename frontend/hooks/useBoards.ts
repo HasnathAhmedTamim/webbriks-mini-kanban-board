@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { BoardDetail, BoardSummary } from "@/types";
+import { applyBoardTaskMove } from "@/lib/boardMove";
+import type { BoardDetail, BoardSummary, Task } from "@/types";
 
 export function useBoards() {
   return useQuery({
@@ -15,6 +16,7 @@ export function useBoards() {
 }
 
 export function useBoard(boardId: string) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["boards", boardId],
     queryFn: async () => {
@@ -22,6 +24,20 @@ export function useBoard(boardId: string) {
       return data.data;
     },
     enabled: Boolean(boardId),
+    // Instant paint when returning to a board you already opened.
+    placeholderData: () => qc.getQueryData<BoardDetail>(["boards", boardId]),
+  });
+}
+
+/** Warm the board detail cache on hover / focus before navigation. */
+export function prefetchBoard(qc: ReturnType<typeof useQueryClient>, boardId: string) {
+  return qc.prefetchQuery({
+    queryKey: ["boards", boardId],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: BoardDetail }>(`/boards/${boardId}`);
+      return data.data;
+    },
+    staleTime: 30_000,
   });
 }
 
@@ -32,7 +48,10 @@ export function useCreateBoard() {
       const { data } = await api.post<{ data: BoardDetail }>("/boards", { name });
       return data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards"] }),
+    onSuccess: (board) => {
+      qc.setQueryData<BoardDetail>(["boards", board.id], board);
+      qc.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
 }
 
@@ -160,17 +179,36 @@ export function useDeleteTask(boardId: string) {
 export function useMoveTask(boardId: string) {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: ["move-task", boardId],
     mutationFn: async (payload: {
       taskId: string;
       targetColumnId: string;
       targetPosition: number;
     }) => {
-      const { data } = await api.patch(`/tasks/${payload.taskId}/move`, {
+      const { data } = await api.patch<{ data: Task }>(`/tasks/${payload.taskId}/move`, {
         targetColumnId: payload.targetColumnId,
         targetPosition: payload.targetPosition,
       });
       return data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
+    onMutate: async (payload) => {
+      await qc.cancelQueries({ queryKey: ["boards", boardId] });
+      const previous = qc.getQueryData<BoardDetail>(["boards", boardId]);
+
+      if (previous) {
+        qc.setQueryData<BoardDetail>(["boards", boardId], applyBoardTaskMove(previous, payload));
+      }
+
+      return { previous };
+    },
+    onError: (_error, _payload, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["boards", boardId], context.previous);
+      }
+    },
+    onSuccess: async () => {
+      // Confirm DB order after save so reload matches what you see.
+      await qc.invalidateQueries({ queryKey: ["boards", boardId] });
+    },
   });
 }

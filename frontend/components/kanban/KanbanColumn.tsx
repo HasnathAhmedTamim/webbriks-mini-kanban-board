@@ -40,15 +40,15 @@ export function KanbanColumn({
 
   return (
     <section
-      className={`flex w-72 shrink-0 flex-col rounded-lg border bg-[var(--surface)] shadow-sm ${
+      className={`flex w-full flex-col rounded-lg border bg-[var(--surface)] shadow-sm lg:max-h-[calc(100dvh-11rem)] lg:w-72 lg:shrink-0 ${
         isOver ? "border-[var(--accent)]" : "border-[var(--line)]"
       }`}
     >
       <header
-        className={`flex items-center justify-between gap-2 rounded-t-lg px-3 py-2.5 ${HEADER_COLORS[index % HEADER_COLORS.length]}`}
+        className={`flex shrink-0 items-center justify-between gap-2 rounded-t-lg px-3 py-2.5 ${HEADER_COLORS[index % HEADER_COLORS.length]}`}
       >
-        <div>
-          <h3 className="text-sm font-semibold text-[var(--ink)]">{column.name}</h3>
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-[var(--ink)]">{column.name}</h3>
           <p className="text-xs text-[var(--muted)]">
             {column.tasks.length} task{column.tasks.length === 1 ? "" : "s"}
           </p>
@@ -62,7 +62,7 @@ export function KanbanColumn({
         />
       </header>
 
-      <div ref={setNodeRef} className="flex min-h-[140px] flex-1 flex-col gap-2 p-3">
+      <div ref={setNodeRef} className="flex min-h-[120px] flex-1 flex-col gap-2 p-3 lg:overflow-y-auto">
         <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((task) => (
             <TaskCard
@@ -83,7 +83,7 @@ export function KanbanColumn({
         ) : null}
       </div>
 
-      <div className="px-3 pb-3">
+      <div className="shrink-0 px-3 pb-3">
         <Button
           variant="ghost"
           type="button"
