@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #1f2937;
+  --ink: #111827;
   --muted: #6b7280;
   --line: #e5e7eb;
   --surface: #ffffff;
@@ -10,7 +10,10 @@
   --accent-hover: #1d4ed8;
   --accent-soft: #eff6ff;
   --danger: #dc2626;
-  --success: #15803d;
+  --col-blue: #dbeafe;
+  --col-sky: #e0f2fe;
+  --col-peach: #ffedd5;
+  --col-green: #dcfce7;
   --background: var(--canvas);
   --foreground: var(--ink);
 }
@@ -18,17 +21,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-surface: var(--surface);
-  --color-canvas: var(--canvas);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-soft: var(--accent-soft);
-  --color-danger: var(--danger);
   --font-sans: var(--font-outfit);
-  --font-display: var(--font-outfit);
 }
 
 body {
@@ -36,12 +29,4 @@ body {
   color: var(--ink);
   font-family: var(--font-outfit), "Segoe UI", sans-serif;
   background: var(--canvas);
-}
-
-h1,
-h2,
-.font-display {
-  font-family: var(--font-outfit), "Segoe UI", sans-serif;
-  letter-spacing: -0.01em;
-  font-weight: 600;
 }

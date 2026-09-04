@@ -15,6 +15,7 @@ function formatUpdated(value: string) {
     return new Intl.DateTimeFormat(undefined, {
       month: "short",
       day: "numeric",
+      year: "numeric",
     }).format(new Date(value));
   } catch {
     return "";
@@ -26,38 +27,19 @@ export function BoardCard({ board, currentUserId, onDelete }: BoardCardProps) {
   const initials = board.owner.name.slice(0, 1).toUpperCase();
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5">
+    <article className="flex h-full flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link
-            href={`/boards/${board.id}`}
-            className="text-lg font-semibold text-[var(--ink)] hover:text-[var(--accent)]"
-          >
-            {board.name}
-          </Link>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {isOwner ? "You own this board" : `Shared by ${board.owner.name}`}
-          </p>
-        </div>
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent)]"
-          title={board.owner.name}
+        <Link
+          href={`/boards/${board.id}`}
+          className="text-base font-semibold text-[var(--ink)] hover:text-[var(--accent)]"
         >
-          {initials}
-        </div>
-      </div>
-
-      <div className="mt-auto flex items-center justify-between gap-3 pt-6 text-xs text-[var(--muted)]">
-        <p>
-          {board._count?.columns ?? 0} columns
-          {board._count?.members != null ? ` · ${board._count.members} members` : ""}
-          {board.updatedAt ? ` · ${formatUpdated(board.updatedAt)}` : ""}
-        </p>
+          {board.name}
+        </Link>
         {isOwner && onDelete ? (
           <Button
             variant="ghost"
             type="button"
-            className="px-2 py-1 text-[var(--danger)]"
+            className="px-2 py-1 text-xs text-[var(--danger)]"
             onClick={() => {
               if (window.confirm("Delete this board? This cannot be undone.")) {
                 onDelete(board.id);
@@ -66,6 +48,28 @@ export function BoardCard({ board, currentUserId, onDelete }: BoardCardProps) {
           >
             Delete
           </Button>
+        ) : null}
+      </div>
+
+      <p className="mt-3 text-sm text-[var(--muted)]">
+        {board._count?.columns ?? 0} columns
+        {board._count?.members != null ? ` · ${board._count.members} members` : ""}
+      </p>
+      {board.updatedAt ? (
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          Updated {formatUpdated(board.updatedAt)}
+        </p>
+      ) : null}
+
+      <div className="mt-auto flex items-center pt-4">
+        <div
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]"
+          title={board.owner.name}
+        >
+          {initials}
+        </div>
+        {!isOwner ? (
+          <span className="ml-2 text-xs text-[var(--muted)]">Shared by {board.owner.name}</span>
         ) : null}
       </div>
     </article>

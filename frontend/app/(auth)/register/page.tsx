@@ -3,19 +3,20 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <div className="mb-6 text-center">
-        <Link href="/" className="text-2xl font-semibold text-[var(--ink)]">
-          MiniKanban
-        </Link>
-        <p className="mt-2 text-sm text-[var(--muted)]">Create your account</p>
-      </div>
-      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--canvas)] px-4 py-12">
+      <div className="w-full max-w-md rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
+        <div className="mb-6 text-center">
+          <Link href="/" className="text-xl font-semibold text-[var(--ink)]">
+            MiniKanban
+          </Link>
+          <h1 className="mt-3 text-lg font-semibold text-[var(--ink)]">Create Account</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Register to start managing boards</p>
+        </div>
         <RegisterForm />
         <p className="mt-5 text-center text-sm text-[var(--muted)]">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-[var(--accent)] hover:underline">
-            Sign in
+            Login
           </Link>
         </p>
       </div>

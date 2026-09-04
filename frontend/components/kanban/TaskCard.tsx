@@ -25,20 +25,16 @@ export function TaskCard({ task, onOpen }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       type="button"
-      className={`w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 text-left transition ${
-        isDragging
-          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-          : "hover:border-[var(--accent)]"
+      className={`w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 text-left shadow-sm ${
+        isDragging ? "border-[var(--accent)] opacity-90" : "hover:border-[var(--accent)]"
       }`}
       onClick={() => onOpen(task)}
       {...attributes}
       {...listeners}
     >
-      <p className="font-medium text-[var(--ink)]">{task.title}</p>
+      <p className="text-sm font-medium text-[var(--ink)]">{task.title}</p>
       {task.description ? (
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--muted)]">
-          {task.description}
-        </p>
+        <p className="mt-1 line-clamp-2 text-xs text-[var(--muted)]">{task.description}</p>
       ) : null}
     </button>
   );

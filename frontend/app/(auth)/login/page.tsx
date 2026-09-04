@@ -3,19 +3,20 @@ import { LoginForm } from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <div className="mb-6 text-center">
-        <Link href="/" className="text-2xl font-semibold text-[var(--ink)]">
-          MiniKanban
-        </Link>
-        <p className="mt-2 text-sm text-[var(--muted)]">Sign in to continue</p>
-      </div>
-      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--canvas)] px-4 py-12">
+      <div className="w-full max-w-md rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
+        <div className="mb-6 text-center">
+          <Link href="/" className="text-xl font-semibold text-[var(--ink)]">
+            MiniKanban
+          </Link>
+          <h1 className="mt-3 text-lg font-semibold text-[var(--ink)]">Login</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Sign in to your account</p>
+        </div>
         <LoginForm />
         <p className="mt-5 text-center text-sm text-[var(--muted)]">
-          New here?{" "}
+          Don’t have an account?{" "}
           <Link href="/register" className="font-medium text-[var(--accent)] hover:underline">
-            Create an account
+            Register
           </Link>
         </p>
       </div>

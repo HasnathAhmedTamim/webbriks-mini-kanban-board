@@ -42,7 +42,7 @@ export default function BoardDetailPage() {
             {getErrorMessage(boardQuery.error, "Board not found")}
           </p>
           <Link href="/boards" className="mt-4 inline-block text-[var(--accent)] hover:underline">
-            Back to boards
+            Back to Boards
           </Link>
         </main>
       </AppShell>
@@ -54,40 +54,34 @@ export default function BoardDetailPage() {
 
   return (
     <AppShell
-      actions={
+      headerActions={
         <div className="flex gap-2">
-          <Button variant="secondary" type="button" onClick={() => setColumnOpen(true)}>
-            Add column
-          </Button>
-          <Button type="button" onClick={() => setShareOpen(true)}>
+          <Button variant="secondary" type="button" onClick={() => setShareOpen(true)}>
             Share
+          </Button>
+          <Button type="button" onClick={() => setColumnOpen(true)}>
+            + Add Column
           </Button>
         </div>
       }
     >
-      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/boards" className="text-sm text-[var(--muted)] hover:text-[var(--accent)]">
-              Boards
-            </Link>
-            <h1 className="mt-1 text-3xl font-semibold text-[var(--ink)]">{board.name}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <div className="flex -space-x-2">
-                {board.members.slice(0, 5).map((member) => (
-                  <div
-                    key={member.id}
-                    title={`${member.user.name} (${member.role})`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--surface)] bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]"
-                  >
-                    {member.user.name.slice(0, 1).toUpperCase()}
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-[var(--muted)]">
-                {board.members.length} member{board.members.length === 1 ? "" : "s"} · drag cards to
-                move them
-              </p>
+      <main className="px-4 py-5 sm:px-6">
+        <div className="mb-5">
+          <Link href="/boards?view=owned" className="text-sm text-[var(--accent)] hover:underline">
+            Back to Boards
+          </Link>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold text-[var(--ink)]">{board.name}</h1>
+            <div className="flex -space-x-2">
+              {board.members.slice(0, 4).map((member) => (
+                <div
+                  key={member.id}
+                  title={`${member.user.name} (${member.role})`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[var(--surface)] bg-[var(--accent-soft)] text-[10px] font-semibold text-[var(--accent)]"
+                >
+                  {member.user.name.slice(0, 1).toUpperCase()}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -103,7 +97,7 @@ export default function BoardDetailPage() {
 
         <Modal
           open={columnOpen}
-          title="Add column"
+          title="Add Column"
           onClose={() => setColumnOpen(false)}
           footer={
             <>
@@ -124,7 +118,7 @@ export default function BoardDetailPage() {
                   }
                 }}
               >
-                Add
+                Create
               </Button>
             </>
           }
