@@ -39,7 +39,7 @@ export function RegisterForm() {
       notify.success("You’re all set!", {
         description: "Your account is ready — let’s go.",
       });
-      router.replace("/boards");
+      router.replace("/boards?view=owned");
     } catch (error) {
       notify.error(error, "We couldn’t create your account. Try another email.");
     } finally {
@@ -48,7 +48,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <Input
         label="Name"
         name="name"
@@ -78,6 +78,7 @@ export function RegisterForm() {
           autoComplete="new-password"
           placeholder="At least 6 characters"
           error={errors.password}
+          className="pr-10"
         />
         <button
           type="button"

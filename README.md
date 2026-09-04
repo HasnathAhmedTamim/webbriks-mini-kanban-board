@@ -42,6 +42,58 @@ Collaborative kanban board for the **Webbriks Technical Assessment** — auth, b
 └── README.md
 ```
 
+### Frontend (`frontend/`)
+
+```text
+frontend/
+├── app/                      # App Router pages
+│   ├── (auth)/               # Login & register
+│   ├── boards/               # Board list + shared layout/chrome
+│   │   └── [boardId]/        # Kanban board detail
+│   ├── error.tsx             # Route error UI
+│   ├── global-error.tsx      # Root error UI
+│   ├── not-found.tsx         # 404 page
+│   ├── layout.tsx            # Root layout + providers
+│   └── page.tsx              # Landing / redirect
+├── components/
+│   ├── auth/                 # Auth forms & redirects
+│   ├── boards/               # Board list, create, share
+│   ├── kanban/               # Columns, cards, DnD board
+│   ├── layout/               # AppShell, boards chrome
+│   └── ui/                   # Button, Modal, StatusPage, …
+├── hooks/                    # useAuth, useBoards (TanStack Query)
+├── lib/                      # Axios client, auth storage, move helpers, Zod
+├── providers/                # QueryClient + toaster
+├── types/                    # Shared TS types
+└── public/
+```
+
+### Backend (`backend/`)
+
+```text
+backend/
+├── prisma/
+│   ├── schema.prisma         # User, Board, Member, Column, Task
+│   └── migrations/
+├── src/
+│   ├── app.ts                # Express app (CORS, helmet, routes)
+│   ├── server.ts             # HTTP server entry
+│   ├── config/               # Env validation (Zod)
+│   ├── lib/                  # Prisma client, JWT helpers
+│   ├── middlewares/          # Auth, errors, 404
+│   ├── modules/              # Feature modules (routes → controller → service)
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── boards/
+│   │   ├── members/
+│   │   ├── columns/
+│   │   └── tasks/            # Includes PATCH /tasks/:id/move
+│   ├── routes/               # API router mount
+│   └── utils/                # AppError, ACL helpers, response envelope
+├── Dockerfile
+└── package.json
+```
+
 ---
 
 ## Quick start

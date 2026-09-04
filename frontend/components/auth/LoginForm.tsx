@@ -37,7 +37,7 @@ export function LoginForm() {
       notify.success("Welcome back!", {
         description: "Taking you to your boards.",
       });
-      router.replace("/boards");
+      router.replace("/boards?view=owned");
     } catch (error) {
       notify.error(error, "We couldn’t sign you in. Check your email and password.");
     } finally {
@@ -46,7 +46,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <Input
         label="Email"
         type="email"
@@ -67,6 +67,7 @@ export function LoginForm() {
           autoComplete="current-password"
           placeholder="Your password"
           error={errors.password}
+          className="pr-10"
         />
         <button
           type="button"

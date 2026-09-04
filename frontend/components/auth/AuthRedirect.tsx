@@ -12,7 +12,7 @@ export function AuthRedirect({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace("/boards");
+      router.replace("/boards?view=owned");
     }
   }, [isLoading, user, router]);
 
