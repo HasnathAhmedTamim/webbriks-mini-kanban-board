@@ -44,19 +44,22 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
           Invite someone by the email they used to sign up.
         </p>
 
-        <ul className="space-y-2 rounded-lg border border-[var(--line)] p-3">
+        <ul className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-[var(--line)] p-3 sm:max-h-64">
           {board.members.map((member) => (
-            <li key={member.id} className="flex items-center justify-between gap-2 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]">
+            <li
+              key={member.id}
+              className="flex flex-col gap-2 border-b border-[var(--line)] pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]">
                   {member.user.name.slice(0, 1).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-medium text-[var(--ink)]">{member.user.name}</p>
-                  <p className="text-[var(--muted)]">{member.user.email}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-[var(--ink)]">{member.user.name}</p>
+                  <p className="truncate text-[var(--muted)]">{member.user.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center justify-between gap-2 pl-11 sm:justify-end sm:pl-0">
                 <span className="text-xs text-[var(--muted)]">{member.role}</span>
                 {isOwner && member.role !== "OWNER" ? (
                   <Button

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import { AppProviders } from "@/providers/QueryProvider";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -12,6 +12,12 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "MiniKanban",
   description: "Collaborative mini kanban board",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

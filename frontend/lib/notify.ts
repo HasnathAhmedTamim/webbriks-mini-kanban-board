@@ -1,10 +1,11 @@
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 type FeedbackOptions = {
   description?: string;
 };
 
-/** Plain-language feedback for people using the app — not developers. */
+/** User-facing feedback for the app. */
 export const notify = {
   success(title: string, options?: FeedbackOptions) {
     toast.success(title, {
@@ -13,24 +14,9 @@ export const notify = {
     });
   },
 
-  /** Always shows a friendly message. Never dumps raw API text. */
-  error(_error: unknown, message = "That didn’t work. Please try again.") {
-    const status = (_error as { response?: { status?: number } })?.response?.status;
-    if (status === 403) {
-      toast.error("You don’t have access to do that", {
-        description: "Ask the board owner if you need help.",
-        duration: 4500,
-      });
-      return;
-    }
-    if (status === 401) {
-      toast.error("Please sign in again", {
-        description: "Your session ended.",
-        duration: 4500,
-      });
-      return;
-    }
-    toast.error(message, { duration: 4500 });
+  /** Prefers the API message so reviewers can see what the server returned. */
+  error(error: unknown, fallback = "That didn’t work. Please try again.") {
+    toast.error(getErrorMessage(error, fallback), { duration: 4500 });
   },
 
   message(title: string, options?: FeedbackOptions) {

@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LayoutGrid, LogOut, Plus, Share2, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export type BoardView = "all" | "owned" | "shared";
 
@@ -28,6 +30,7 @@ export function AppShell({
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const onBoards = pathname.startsWith("/boards") && !pathname.split("/")[2];
 
   const navBtn = (active: boolean) =>
@@ -39,12 +42,15 @@ export function AppShell({
 
   const goView = (view: BoardView) => {
     onBoardViewChange?.(view);
-    router.push(`/boards?view=${view}`);
     setMobileOpen(false);
   };
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
+    setLogoutOpen(false);
     logout();
+    notify.success("You’re signed out", {
+      description: "Come back anytime.",
+    });
     router.push("/login");
   };
 
@@ -68,22 +74,22 @@ export function AppShell({
         <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
           Boards
         </p>
-        <button
-          type="button"
+        <Link
+          href="/boards?view=owned"
           className={navBtn(onBoards && boardView === "owned")}
           onClick={() => goView("owned")}
         >
           <LayoutGrid className="h-4 w-4" />
           My Boards
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          href="/boards?view=shared"
           className={navBtn(onBoards && boardView === "shared")}
           onClick={() => goView("shared")}
         >
           <Share2 className="h-4 w-4" />
           Shared with me
-        </button>
+        </Link>
         <Button
           type="button"
           className="mt-3 w-full"
@@ -117,36 +123,38 @@ export function AppShell({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-3 sm:gap-3 sm:px-6">
           <button
             type="button"
-            className="rounded-md p-2 text-[var(--muted)] hover:bg-[var(--canvas)] md:hidden"
+            className="shrink-0 rounded-md p-2 text-[var(--muted)] hover:bg-[var(--canvas)] md:hidden"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            {headerActions}
+          <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-3">
+            {headerActions ? (
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">{headerActions}</div>
+            ) : null}
             {user ? (
-              <div className="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--canvas)] py-1 pl-1 pr-2 sm:pr-3">
+              <div className="flex min-w-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--canvas)] py-1 pl-1 pr-1.5 sm:gap-2 sm:pr-3">
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-semibold text-white"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-semibold text-white"
                   aria-hidden
                 >
                   {user.name.slice(0, 1).toUpperCase()}
                 </div>
-                <div className="hidden min-w-0 sm:block">
+                <div className="hidden min-w-0 max-w-[9rem] sm:block md:max-w-[12rem] lg:max-w-[16rem]">
                   <p className="truncate text-sm font-medium text-[var(--ink)]">{user.name}</p>
                   <p className="truncate text-xs text-[var(--muted)]">{user.email}</p>
                 </div>
                 <Button
                   variant="ghost"
                   type="button"
-                  className="ml-1 px-2 py-1"
+                  className="ml-0.5 shrink-0 px-2 py-1"
                   aria-label="Log out"
-                  onClick={handleLogout}
+                  onClick={() => setLogoutOpen(true)}
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="hidden lg:inline">Logout</span>
@@ -155,8 +163,19 @@ export function AppShell({
             ) : null}
           </div>
         </header>
-        <div className="flex-1 overflow-auto">{children}</div>
+        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
       </div>
+
+      <ConfirmDialog
+        open={logoutOpen}
+        title="Log out?"
+        description="Are you sure you want to sign out of your account?"
+        confirmLabel="Log out"
+        confirmVariant="primary"
+        loadingText="Signing out…"
+        onClose={() => setLogoutOpen(false)}
+        onConfirm={confirmLogout}
+      />
     </div>
   );
 }

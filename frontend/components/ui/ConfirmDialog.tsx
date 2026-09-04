@@ -8,6 +8,8 @@ type ConfirmDialogProps = {
   title: string;
   description: string;
   confirmLabel?: string;
+  loadingText?: string;
+  confirmVariant?: "primary" | "danger";
   loading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
@@ -18,6 +20,8 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = "Delete",
+  loadingText = "Deleting…",
+  confirmVariant = "danger",
   loading,
   onConfirm,
   onClose,
@@ -29,14 +33,15 @@ export function ConfirmDialog({
       onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" type="button" onClick={onClose}>
+          <Button variant="secondary" type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            variant="danger"
+            variant={confirmVariant}
             type="button"
+            className="w-full sm:w-auto"
             loading={loading}
-            loadingText="Deleting…"
+            loadingText={loadingText}
             onClick={onConfirm}
           >
             {confirmLabel}

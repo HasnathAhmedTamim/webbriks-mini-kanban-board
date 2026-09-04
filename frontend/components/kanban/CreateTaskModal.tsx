@@ -77,12 +77,13 @@ export function CreateTaskModal({
       onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" type="button" onClick={onClose}>
+          <Button variant="secondary" type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancel
           </Button>
           <Button
             form="create-task-form"
             type="submit"
+            className="w-full sm:w-auto"
             loading={createTask.isPending}
             loadingText="Creating…"
           >

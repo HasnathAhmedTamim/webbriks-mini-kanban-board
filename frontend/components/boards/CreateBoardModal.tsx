@@ -74,12 +74,13 @@ export function CreateBoardModal({
       onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" type="button" onClick={onClose}>
+          <Button variant="secondary" type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancel
           </Button>
           <Button
             form="board-form"
             type="submit"
+            className="w-full sm:w-auto"
             loading={pending}
             loadingText={mode === "rename" ? "Saving…" : "Creating…"}
           >

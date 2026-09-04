@@ -67,10 +67,11 @@ export function TaskModal({
       });
       if (parsed.data.columnId !== task.columnId) {
         const target = columns.find((c) => c.id === parsed.data.columnId);
+        const withoutMoving = (target?.tasks || []).filter((t) => t.id !== task.id);
         await moveTask.mutateAsync({
           taskId: task.id,
           targetColumnId: parsed.data.columnId,
-          targetPosition: target?.tasks.length || 0,
+          targetPosition: withoutMoving.length,
         });
       }
       notify.success("Changes saved", {
@@ -92,16 +93,18 @@ export function TaskModal({
           <Button
             variant="dangerOutline"
             type="button"
+            className="w-full sm:w-auto sm:mr-auto"
             onClick={() => task && onRequestDelete(task)}
           >
             Delete
           </Button>
-          <Button variant="secondary" type="button" onClick={onClose}>
+          <Button variant="secondary" type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancel
           </Button>
           <Button
             form="edit-task-form"
             type="submit"
+            className="w-full sm:w-auto"
             loading={updateTask.isPending || moveTask.isPending}
             loadingText="Saving…"
           >
