@@ -1,24 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useBoards, useDeleteBoard } from "@/hooks/useBoards";
+import { useBoard, useBoards, useDeleteBoard } from "@/hooks/useBoards";
 import { notify } from "@/lib/notify";
-import { AppShell, type BoardView } from "@/components/layout/AppShell";
+import type { BoardView } from "@/components/layout/AppShell";
+import {
+  useBoardCreateHandler,
+  useBoardHeaderActions,
+} from "@/components/layout/BoardsChrome";
 import { BoardList } from "@/components/boards/BoardList";
 import { CreateBoardModal } from "@/components/boards/CreateBoardModal";
 import { ShareBoardModal } from "@/components/boards/ShareBoardModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { BoardSkeleton, Loading } from "@/components/ui/Loading";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { BoardSummary } from "@/types";
-import { useBoard } from "@/hooks/useBoards";
 
 function parseView(value: string | null): BoardView {
-  if (value === "shared" || value === "owned" || value === "all") return value;
-  return "all";
+  if (value === "shared" || value === "owned") return value;
+  return "owned";
 }
 
 export default function BoardsPageClient() {
@@ -31,17 +34,37 @@ export default function BoardsPageClient() {
   const [renameBoard, setRenameBoard] = useState<BoardSummary | null>(null);
   const [shareBoardId, setShareBoardId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BoardSummary | null>(null);
-  const [filter, setFilter] = useState<BoardView>(() => parseView(searchParams.get("view")));
 
+  const filter = parseView(searchParams.get("view"));
+  const showOwned = filter === "owned";
+  const showShared = filter === "shared";
   const shareQuery = useBoard(shareBoardId || "");
+
+  const openCreate = useCallback(() => setCreateOpen(true), []);
+
+  const headerActions = useMemo(
+    () => (
+      <Button type="button" className="px-2.5 sm:px-3.5" onClick={openCreate}>
+        <Plus className="h-4 w-4" />
+        <span className="sm:hidden">Create</span>
+        <span className="hidden sm:inline">Create Board</span>
+      </Button>
+    ),
+    [openCreate]
+  );
+
+  useBoardHeaderActions(headerActions);
+  useBoardCreateHandler(openCreate);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login");
   }, [isLoading, user, router]);
 
   useEffect(() => {
-    setFilter(parseView(searchParams.get("view")));
-  }, [searchParams]);
+    if (!searchParams.get("view")) {
+      router.replace("/boards?view=owned", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const owned = useMemo(
     () => (boardsQuery.data || []).filter((b) => b.ownerId === user?.id),
@@ -54,24 +77,8 @@ export default function BoardsPageClient() {
 
   if (isLoading || !user) return <Loading />;
 
-  const showOwned = filter === "all" || filter === "owned";
-  const showShared = filter === "all" || filter === "shared";
-
   return (
-    <AppShell
-      boardView={filter === "all" ? "owned" : filter}
-      onBoardViewChange={(view) => {
-        setFilter(view);
-      }}
-      onCreateBoard={() => setCreateOpen(true)}
-      headerActions={
-        <Button type="button" className="px-2.5 sm:px-3.5" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4" />
-          <span className="sm:hidden">Create</span>
-          <span className="hidden sm:inline">Create Board</span>
-        </Button>
-      }
-    >
+    <>
       <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-5 sm:px-6 sm:py-6">
         {boardsQuery.isLoading ? <BoardSkeleton /> : null}
 
@@ -89,7 +96,7 @@ export default function BoardsPageClient() {
               currentUserId={user.id}
               emptyLabel="No boards yet"
               emptyHint="Create your first board to get started."
-              onCreate={() => setCreateOpen(true)}
+              onCreate={openCreate}
               onRename={setRenameBoard}
               onShare={(b) => setShareBoardId(b.id)}
               onDelete={setDeleteTarget}
@@ -149,6 +156,6 @@ export default function BoardsPageClient() {
           }
         }}
       />
-    </AppShell>
+    </>
   );
 }

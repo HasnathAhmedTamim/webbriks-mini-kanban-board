@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Columns3, Share2 } from "lucide-react";
@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBoard, useCreateColumn } from "@/hooks/useBoards";
 import { getErrorMessage } from "@/lib/utils";
 import { notify } from "@/lib/notify";
-import { AppShell } from "@/components/layout/AppShell";
+import { useBoardHeaderActions } from "@/components/layout/BoardsChrome";
 import { ShareBoardModal } from "@/components/boards/ShareBoardModal";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { Button } from "@/components/ui/Button";
@@ -28,6 +28,35 @@ export default function BoardDetailPage() {
   const [columnOpen, setColumnOpen] = useState(false);
   const [columnName, setColumnName] = useState("");
 
+  const headerActions = useMemo(
+    () => (
+      <>
+        <Button
+          variant="secondary"
+          type="button"
+          className="px-2.5 sm:px-3.5"
+          aria-label="Share board"
+          onClick={() => setShareOpen(true)}
+        >
+          <Share2 className="h-4 w-4" />
+          <span className="hidden sm:inline">Share</span>
+        </Button>
+        <Button
+          type="button"
+          className="px-2.5 sm:px-3.5"
+          aria-label="Add column"
+          onClick={() => setColumnOpen(true)}
+        >
+          <Columns3 className="h-4 w-4" />
+          <span className="hidden sm:inline">Add Column</span>
+        </Button>
+      </>
+    ),
+    []
+  );
+
+  useBoardHeaderActions(headerActions);
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
@@ -36,36 +65,30 @@ export default function BoardDetailPage() {
 
   if (isLoading || !user) {
     return (
-      <AppShell>
-        <main className="px-3 py-4 sm:px-6 sm:py-5">
-          <KanbanSkeleton />
-        </main>
-      </AppShell>
+      <main className="px-3 py-4 sm:px-6 sm:py-5">
+        <KanbanSkeleton />
+      </main>
     );
   }
 
   if (boardQuery.isLoading && !boardQuery.data) {
     return (
-      <AppShell>
-        <main className="px-3 py-4 sm:px-6 sm:py-5">
-          <KanbanSkeleton />
-        </main>
-      </AppShell>
+      <main className="px-3 py-4 sm:px-6 sm:py-5">
+        <KanbanSkeleton />
+      </main>
     );
   }
 
   if (boardQuery.isError || !boardQuery.data) {
     return (
-      <AppShell>
-        <main className="mx-auto max-w-3xl px-6 py-16">
-          <p className="text-[var(--danger)]">
-            {getErrorMessage(boardQuery.error, "Board not found")}
-          </p>
-          <Link href="/boards" className="mt-4 inline-block text-[var(--accent)] hover:underline">
-            Back to Boards
-          </Link>
-        </main>
-      </AppShell>
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <p className="text-[var(--danger)]">
+          {getErrorMessage(boardQuery.error, "Board not found")}
+        </p>
+        <Link href="/boards" className="mt-4 inline-block text-[var(--accent)] hover:underline">
+          Back to Boards
+        </Link>
+      </main>
     );
   }
 
@@ -73,34 +96,14 @@ export default function BoardDetailPage() {
   const isOwner = board.ownerId === user.id;
 
   return (
-    <AppShell
-      headerActions={
-        <>
-          <Button
-            variant="secondary"
-            type="button"
-            className="px-2.5 sm:px-3.5"
-            aria-label="Share board"
-            onClick={() => setShareOpen(true)}
-          >
-            <Share2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Share</span>
-          </Button>
-          <Button
-            type="button"
-            className="px-2.5 sm:px-3.5"
-            aria-label="Add column"
-            onClick={() => setColumnOpen(true)}
-          >
-            <Columns3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Add Column</span>
-          </Button>
-        </>
-      }
-    >
+    <>
       <main className="px-3 py-4 sm:px-6 sm:py-5">
         <div className="mb-4 sm:mb-5">
-          <Link href="/boards?view=owned" className="text-sm text-[var(--accent)] hover:underline">
+          <Link
+            href="/boards?view=owned"
+            scroll={false}
+            className="text-sm text-[var(--accent)] hover:underline"
+          >
             Back to Boards
           </Link>
           <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
@@ -185,6 +188,6 @@ export default function BoardDetailPage() {
           />
         </Modal>
       </main>
-    </AppShell>
+    </>
   );
 }

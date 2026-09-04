@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { LayoutGrid, LogOut, Plus, Share2, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { notify } from "@/lib/notify";
@@ -13,25 +13,27 @@ export type BoardView = "all" | "owned" | "shared";
 
 type AppShellProps = {
   children: React.ReactNode;
-  boardView?: BoardView;
-  onBoardViewChange?: (view: BoardView) => void;
   onCreateBoard?: () => void;
   headerActions?: React.ReactNode;
 };
 
-export function AppShell({
-  children,
-  boardView = "owned",
-  onBoardViewChange,
+function parseView(value: string | null): BoardView {
+  if (value === "shared" || value === "owned") return value;
+  return "owned";
+}
+
+function SidebarNav({
+  onNavigate,
   onCreateBoard,
-  headerActions,
-}: AppShellProps) {
-  const { user, logout } = useAuth();
+}: {
+  onNavigate?: () => void;
+  onCreateBoard?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [logoutOpen, setLogoutOpen] = useState(false);
-  const onBoards = pathname.startsWith("/boards") && !pathname.split("/")[2];
+  const searchParams = useSearchParams();
+  const onBoardsList = pathname === "/boards";
+  const activeView = onBoardsList ? parseView(searchParams.get("view")) : null;
 
   const navBtn = (active: boolean) =>
     `flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm transition ${
@@ -40,10 +42,107 @@ export function AppShell({
         : "text-[var(--muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]"
     }`;
 
-  const goView = (view: BoardView) => {
-    onBoardViewChange?.(view);
-    setMobileOpen(false);
+  const goView = (view: "owned" | "shared") => {
+    onNavigate?.();
+    router.replace(`/boards?view=${view}`, { scroll: false });
   };
+
+  return (
+    <nav className="flex flex-1 flex-col gap-1 p-3">
+      <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        Boards
+      </p>
+      <button
+        type="button"
+        className={navBtn(activeView === "owned")}
+        onClick={() => goView("owned")}
+      >
+        <LayoutGrid className="h-4 w-4" />
+        My Boards
+      </button>
+      <button
+        type="button"
+        className={navBtn(activeView === "shared")}
+        onClick={() => goView("shared")}
+      >
+        <Share2 className="h-4 w-4" />
+        Shared with me
+      </button>
+      <Button
+        type="button"
+        className="mt-3 w-full"
+        onClick={() => {
+          onNavigate?.();
+          if (onCreateBoard) onCreateBoard();
+          else router.replace("/boards?view=owned", { scroll: false });
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        Create Board
+      </Button>
+    </nav>
+  );
+}
+
+function SidebarNavFallback({
+  onNavigate,
+  onCreateBoard,
+}: {
+  onNavigate?: () => void;
+  onCreateBoard?: () => void;
+}) {
+  const router = useRouter();
+  const navBtn =
+    "flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm text-[var(--muted)] hover:bg-[var(--canvas)] hover:text-[var(--ink)]";
+
+  return (
+    <nav className="flex flex-1 flex-col gap-1 p-3">
+      <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        Boards
+      </p>
+      <button
+        type="button"
+        className={navBtn}
+        onClick={() => {
+          onNavigate?.();
+          router.replace("/boards?view=owned", { scroll: false });
+        }}
+      >
+        <LayoutGrid className="h-4 w-4" />
+        My Boards
+      </button>
+      <button
+        type="button"
+        className={navBtn}
+        onClick={() => {
+          onNavigate?.();
+          router.replace("/boards?view=shared", { scroll: false });
+        }}
+      >
+        <Share2 className="h-4 w-4" />
+        Shared with me
+      </button>
+      <Button
+        type="button"
+        className="mt-3 w-full"
+        onClick={() => {
+          onNavigate?.();
+          if (onCreateBoard) onCreateBoard();
+          else router.replace("/boards?view=owned", { scroll: false });
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        Create Board
+      </Button>
+    </nav>
+  );
+}
+
+export function AppShell({ children, onCreateBoard, headerActions }: AppShellProps) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const confirmLogout = () => {
     setLogoutOpen(false);
@@ -57,7 +156,12 @@ export function AppShell({
   const sidebar = (
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-[var(--line)] bg-[var(--surface)]">
       <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-4">
-        <Link href="/boards" className="text-base font-semibold text-[var(--ink)]">
+        <Link
+          href="/boards?view=owned"
+          scroll={false}
+          className="text-base font-semibold text-[var(--ink)]"
+          onClick={() => setMobileOpen(false)}
+        >
           Kanban Board
         </Link>
         <button
@@ -70,39 +174,19 @@ export function AppShell({
         </button>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 p-3">
-        <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Boards
-        </p>
-        <Link
-          href="/boards?view=owned"
-          className={navBtn(onBoards && boardView === "owned")}
-          onClick={() => goView("owned")}
-        >
-          <LayoutGrid className="h-4 w-4" />
-          My Boards
-        </Link>
-        <Link
-          href="/boards?view=shared"
-          className={navBtn(onBoards && boardView === "shared")}
-          onClick={() => goView("shared")}
-        >
-          <Share2 className="h-4 w-4" />
-          Shared with me
-        </Link>
-        <Button
-          type="button"
-          className="mt-3 w-full"
-          onClick={() => {
-            if (onCreateBoard) onCreateBoard();
-            else router.push("/boards?view=owned");
-            setMobileOpen(false);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Create Board
-        </Button>
-      </nav>
+      <Suspense
+        fallback={
+          <SidebarNavFallback
+            onNavigate={() => setMobileOpen(false)}
+            onCreateBoard={onCreateBoard}
+          />
+        }
+      >
+        <SidebarNav
+          onNavigate={() => setMobileOpen(false)}
+          onCreateBoard={onCreateBoard}
+        />
+      </Suspense>
     </aside>
   );
 
