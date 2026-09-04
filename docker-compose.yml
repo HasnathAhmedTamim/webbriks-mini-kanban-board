@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kanban-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kanban}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kanban}
+      POSTGRES_DB: ${POSTGRES_DB:-kanban}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kanban} -d ${POSTGRES_DB:-kanban}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kanban-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kanban}:${POSTGRES_PASSWORD:-kanban}@postgres:5432/${POSTGRES_DB:-kanban}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 5000
+      NODE_ENV: production
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+    container_name: kanban-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
