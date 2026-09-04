@@ -7,6 +7,7 @@ import type { BoardDetail } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { RoleBadge } from "@/components/ui/RoleBadge";
 
 type ShareBoardModalProps = {
   open: boolean;
@@ -60,7 +61,7 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
                 </div>
               </div>
               <div className="flex shrink-0 items-center justify-between gap-2 pl-11 sm:justify-end sm:pl-0">
-                <span className="text-xs text-[var(--muted)]">{member.role}</span>
+                <RoleBadge role={member.role === "OWNER" ? "OWNER" : "MEMBER"} />
                 {isOwner && member.role !== "OWNER" ? (
                   <Button
                     variant="ghost"

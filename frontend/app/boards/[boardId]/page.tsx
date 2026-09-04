@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { KanbanSkeleton } from "@/components/ui/Loading";
 import { Modal } from "@/components/ui/Modal";
+import { RoleBadge } from "@/components/ui/RoleBadge";
 
 export default function BoardDetailPage() {
   const params = useParams<{ boardId: string }>();
@@ -106,18 +107,28 @@ export default function BoardDetailPage() {
             <h1 className="min-w-0 break-words text-xl font-semibold text-[var(--ink)] sm:text-2xl">
               {board.name}
             </h1>
+            <RoleBadge role={isOwner ? "OWNER" : "MEMBER"} />
             <div className="flex -space-x-2">
               {board.members.slice(0, 4).map((member) => (
                 <div
                   key={member.id}
-                  title={`${member.user.name} (${member.role})`}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[var(--surface)] bg-[var(--accent-soft)] text-[10px] font-semibold text-[var(--accent)]"
+                  title={`${member.user.name} · ${member.role === "OWNER" ? "Owner" : "Member"}`}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-[var(--surface)] text-[10px] font-semibold ${
+                    member.role === "OWNER"
+                      ? "bg-[var(--accent)] text-white"
+                      : "bg-[var(--accent-soft)] text-[var(--accent)]"
+                  }`}
                 >
                   {member.user.name.slice(0, 1).toUpperCase()}
                 </div>
               ))}
             </div>
           </div>
+          <p className="mt-1.5 text-sm text-[var(--muted)]">
+            {isOwner
+              ? "You own this board — you can share and manage access."
+              : `Shared by ${board.owner.name} — you can view and edit tasks.`}
+          </p>
         </div>
 
         <KanbanBoard board={board} />
