@@ -1,22 +1,33 @@
 # Mini Kanban Board
 
-Collaborative kanban board for the **Webbriks Technical Assessment** — auth, board sharing with access control, and drag-and-drop task reordering.
+Full-stack collaborative kanban for the **Webbriks Technical Assessment**.
 
 **Live app:** [webbriks-mini-kanban-board.vercel.app](https://webbriks-mini-kanban-board.vercel.app)  
-**API:** [webbriks-mini-kanban-board.onrender.com/api](https://webbriks-mini-kanban-board.onrender.com/api) · [Health](https://webbriks-mini-kanban-board.onrender.com/api/health)
+**API:** [webbriks-mini-kanban-board.onrender.com/api](https://webbriks-mini-kanban-board.onrender.com/api) · [Health](https://webbriks-mini-kanban-board.onrender.com/api/health)  
+**Repository:** [github.com/HasnathAhmedTamim/webbriks-mini-kanban-board](https://github.com/HasnathAhmedTamim/webbriks-mini-kanban-board)
+
+### Submission checklist
+
+| Deliverable | Status |
+|-------------|--------|
+| Single GitHub repo with `frontend/` + `backend/` | Done |
+| README with local setup + sample env | Done |
+| `docker-compose.yml` (Postgres + API + frontend) | Done |
+| Live deploy (optional) | Done — Vercel + Render + Neon |
 
 ---
 
 ## Features
 
-- Register / login with JWT (bcrypt password hashing)
-- Create, rename, and delete boards
+- Register / login with JWT (passwords hashed with bcrypt)
+- Boards CRUD — create, rename, delete
 - Share boards with registered users (`OWNER` / `MEMBER`)
-- Backend ACL — non-members cannot access board data
+- Backend ACL — non-members cannot access board data (403)
 - Columns & tasks CRUD
 - Drag-and-drop reorder within a column and across columns
-- Optimistic UI updates with transactional move API
+- Optimistic UI + transactional `PATCH /api/tasks/:id/move`
 - Responsive layout (stacked columns on small screens)
+- Error / 404 pages and loading skeletons
 
 ---
 
@@ -24,10 +35,10 @@ Collaborative kanban board for the **Webbriks Technical Assessment** — auth, b
 
 | Layer | Stack |
 |-------|--------|
-| Frontend | Next.js, React, TypeScript, Tailwind CSS, dnd-kit, TanStack Query, Axios, Zod |
+| Frontend | Next.js (App Router), React, TypeScript, Tailwind CSS, dnd-kit, TanStack Query, Axios, Zod |
 | Backend | Express, TypeScript, Prisma, PostgreSQL, JWT, bcrypt, Zod |
 | Local | Docker Compose |
-| Deploy | Neon + Render + Vercel |
+| Deploy | Neon (Postgres) + Render (API) + Vercel (frontend) |
 
 ---
 
@@ -96,7 +107,7 @@ backend/
 
 ---
 
-## Quick start
+## Quick start (local)
 
 **Prerequisites:** Node.js 20+, npm, Docker Desktop
 
@@ -129,9 +140,9 @@ CORS_ORIGIN=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-> Postgres is exposed on host port **5433** to avoid clashing with a local instance on `5432`.
+> Host port **5433** maps to Postgres in Docker (avoids clashing with Postgres on `5432`).
 
-### 3. Database
+### 3. Start Postgres
 
 ```bash
 docker compose up -d postgres
@@ -146,7 +157,8 @@ npx prisma migrate dev
 npm run dev
 ```
 
-API: `http://localhost:5000/api`
+- API: `http://localhost:5000/api`
+- Health: `http://localhost:5000/api/health`
 
 ### 5. Frontend
 
@@ -162,6 +174,8 @@ App: `http://localhost:3000`
 
 ## Docker (full stack)
 
+Stop anything already using ports **3000** / **5000**, then:
+
 ```bash
 docker compose up --build
 ```
@@ -170,17 +184,32 @@ docker compose up --build
 |---------|-----|
 | Frontend | http://localhost:3000 |
 | API | http://localhost:5000/api |
-| Postgres | localhost:5433 |
+| Postgres (from host) | `localhost:5433` |
 
 ```bash
 docker compose down
+```
+
+### Local DB access (Compose)
+
+| Field | Value |
+|--------|--------|
+| Host | `localhost` |
+| Port | `5433` |
+| User / password / DB | `kanban` / `kanban` / `kanban` |
+
+```bash
+docker exec -it kanban-postgres psql -U kanban -d kanban
 ```
 
 ---
 
 ## API
 
-Base URL: `http://localhost:5000/api` (local) or the live API above.
+**Base URL (local):** `http://localhost:5000/api`  
+**Base URL (live):** `https://webbriks-mini-kanban-board.onrender.com/api`
+
+Auth / boards / tasks use **POST/PATCH/DELETE** — opening those paths in a browser (GET) returns `Route not found`. Use the app UI or a REST client.
 
 **Auth header (protected routes):** `Authorization: Bearer <token>`
 
@@ -198,6 +227,7 @@ Base URL: `http://localhost:5000/api` (local) or the live API above.
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/` | API welcome (also on server root `/`) |
 | GET | `/health` | Health check |
 | POST | `/auth/register` | Register |
 | POST | `/auth/login` | Login (returns JWT) |
@@ -224,24 +254,32 @@ PATCH /api/tasks/:id/move
 }
 ```
 
-Positions are reindexed in a transaction. Board membership is required — knowing a task ID alone is not enough.
+Positions are reindexed in a transaction. Board membership is required.
 
 ---
 
 ## Live deployment
 
-| Role | Service | URL / notes |
-|------|---------|-------------|
+| Role | Service | URL |
+|------|---------|-----|
 | App | Vercel | https://webbriks-mini-kanban-board.vercel.app |
 | API | Render | https://webbriks-mini-kanban-board.onrender.com/api |
-| DB | Neon | PostgreSQL |
+| DB | Neon | PostgreSQL (production only) |
 
-**Render env:** `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN=https://webbriks-mini-kanban-board.vercel.app`, `NODE_ENV=production`  
+**Render env:** `DATABASE_URL` (Neon), `JWT_SECRET`, `CORS_ORIGIN=https://webbriks-mini-kanban-board.vercel.app`, `NODE_ENV=production`  
 **Vercel env:** `NEXT_PUBLIC_API_URL=https://webbriks-mini-kanban-board.onrender.com/api`
+
+Local Docker / `npm run dev` use **local Postgres** by default. Neon is for the live API.
 
 ---
 
 ## Submission
 
-Single repository with `frontend/`, `backend/`, this README, sample env files, and `docker-compose.yml`.  
-Repo: [github.com/HasnathAhmedTamim/webbriks-mini-kanban-board](https://github.com/HasnathAhmedTamim/webbriks-mini-kanban-board)
+This repository is ready for the Webbriks form:
+
+- Single repo with `frontend/` and `backend/`
+- Setup instructions + sample env in this README
+- `docker-compose.yml` for local Postgres and optional full stack
+- Live demo links above
+
+**Deadline:** September 6, 2026 — 10:20 PM (Bangladesh Time)
