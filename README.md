@@ -132,23 +132,22 @@ Login/Register scripts save `token`; Create Board saves `boardId`, `columnId`, a
 4. Env vars:
    - `DATABASE_URL` = Neon connection string  
    - `JWT_SECRET` = long random secret  
-   - `CORS_ORIGIN` = your Vercel URL (e.g. `https://your-app.vercel.app`)  
+   - `CORS_ORIGIN` = `https://webbriks-mini-kanban-board.vercel.app`  
    - `NODE_ENV=production`  
    - `PORT=5000` (or Render’s port)
 
 ### 3. Vercel (frontend)
 
 1. Import repo, root `frontend`  
-2. Env: `NEXT_PUBLIC_API_URL=https://your-render-service.onrender.com/api`  
+2. Env: `NEXT_PUBLIC_API_URL=https://webbriks-mini-kanban-board.onrender.com/api`  
 3. Deploy  
 
 ### Live URL
 
-After deploy, put the public frontend URL here:
-
 ```text
-Live app: <YOUR_VERCEL_URL>
-API: <YOUR_RENDER_URL>/api
+Live app: https://webbriks-mini-kanban-board.vercel.app
+API: https://webbriks-mini-kanban-board.onrender.com/api
+Health: https://webbriks-mini-kanban-board.onrender.com/api/health
 ```
 
 ## Sample env
