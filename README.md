@@ -281,5 +281,3 @@ This repository is ready for the Webbriks form:
 - Setup instructions + sample env in this README
 - `docker-compose.yml` for local Postgres and optional full stack
 - Live demo links above
-
-**Deadline:** September 6, 2026 — 10:20 PM (Bangladesh Time)
