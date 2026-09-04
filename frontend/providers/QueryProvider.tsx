@@ -23,11 +23,12 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       {children}
       <Toaster
         position="top-center"
+        richColors
+        closeButton
         toastOptions={{
-          className: "text-sm",
+          className: "text-sm !shadow-md",
           style: {
-            border: "1px solid var(--line)",
-            borderRadius: "10px",
+            borderRadius: "12px",
           },
         }}
       />

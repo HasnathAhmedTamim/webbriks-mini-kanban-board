@@ -61,7 +61,9 @@ export function CreateTaskModal({
         title: parsed.data.title,
         description: parsed.data.description,
       });
-      notify.success("Task created successfully");
+      notify.success("Task added", {
+        description: `“${parsed.data.title}” is in the selected column.`,
+      });
       onClose();
     } catch (error) {
       notify.error(error, "Failed to create task");

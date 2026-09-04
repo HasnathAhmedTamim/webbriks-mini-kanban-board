@@ -34,7 +34,9 @@ export function LoginForm() {
     setLoading(true);
     try {
       await login(parsed.data.email, parsed.data.password);
-      notify.success("Welcome back");
+      notify.success("You're signed in", {
+        description: "Opening your boards…",
+      });
       router.push("/boards");
     } catch (error) {
       notify.error(error, "Failed to sign in");

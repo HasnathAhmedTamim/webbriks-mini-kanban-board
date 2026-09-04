@@ -25,7 +25,9 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
     if (!isOwner) return;
     try {
       await shareBoard.mutateAsync(email.trim().toLowerCase());
-      notify.success("Member added successfully");
+      notify.success("Member added", {
+        description: `${email.trim()} can now open this board.`,
+      });
       setEmail("");
     } catch (error) {
       notify.error(error, "We couldn’t add that person. Make sure they’re registered.");
@@ -62,7 +64,9 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
                     onClick={async () => {
                       try {
                         await removeMember.mutateAsync(member.userId);
-                        notify.success("Access removed.");
+                        notify.success("Member removed", {
+                          description: "They no longer have access to this board.",
+                        });
                       } catch (error) {
                         notify.error(error, "We couldn’t remove that member.");
                       }

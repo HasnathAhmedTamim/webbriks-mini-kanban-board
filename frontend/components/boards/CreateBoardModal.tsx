@@ -45,10 +45,14 @@ export function CreateBoardModal({
     try {
       if (mode === "rename" && boardId) {
         await updateBoard.mutateAsync({ boardId, name: parsed.data.name });
-        notify.success("Board renamed successfully");
+        notify.success("Board renamed", {
+          description: `New name: “${parsed.data.name}”`,
+        });
       } else {
         await createBoard.mutateAsync(parsed.data.name);
-        notify.success("Board created successfully");
+        notify.success("Board created", {
+          description: `“${parsed.data.name}” is ready — open it to add tasks.`,
+        });
       }
       onClose();
     } catch (err) {

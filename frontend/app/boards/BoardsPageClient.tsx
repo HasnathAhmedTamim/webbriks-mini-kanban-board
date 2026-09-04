@@ -138,7 +138,9 @@ export default function BoardsPageClient() {
           if (!deleteTarget) return;
           try {
             await deleteBoard.mutateAsync(deleteTarget.id);
-            notify.success("Board deleted successfully");
+            notify.success("Board deleted", {
+              description: `“${deleteTarget.name}” was removed from your list.`,
+            });
             setDeleteTarget(null);
           } catch (error) {
             notify.error(error, "Failed to delete board");

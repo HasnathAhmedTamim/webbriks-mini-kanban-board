@@ -167,7 +167,9 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         targetColumnId: targetColumn.id,
         targetPosition: Math.max(0, targetPosition),
       });
-      notify.success("Task moved successfully");
+      notify.success("Task moved", {
+        description: "The new order is saved.",
+      });
     } catch (error) {
       notify.error(error, "Failed to move task");
       setColumns(board.columns);
@@ -253,7 +255,9 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
                     columnId: renameColumn.id,
                     name: parsed.data.name,
                   });
-                  notify.success("Column renamed successfully");
+                  notify.success("Column renamed", {
+                    description: `Now called “${parsed.data.name}”.`,
+                  });
                   setRenameColumn(null);
                 } catch (error) {
                   notify.error(error, "Failed to rename column");
@@ -282,7 +286,9 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
           if (!deleteColumnTarget) return;
           try {
             await deleteColumn.mutateAsync(deleteColumnTarget.id);
-            notify.success("Column deleted successfully");
+            notify.success("Column deleted", {
+              description: `“${deleteColumnTarget.name}” and its tasks were removed.`,
+            });
             setDeleteColumnTarget(null);
           } catch (error) {
             notify.error(error, "Failed to delete column");
@@ -300,7 +306,9 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
           if (!deleteTaskTarget) return;
           try {
             await deleteTask.mutateAsync(deleteTaskTarget.id);
-            notify.success("Task deleted successfully");
+            notify.success("Task deleted", {
+              description: `“${deleteTaskTarget.title}” was removed.`,
+            });
             setDeleteTaskTarget(null);
           } catch (error) {
             notify.error(error, "Failed to delete task");

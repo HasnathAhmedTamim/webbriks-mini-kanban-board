@@ -36,7 +36,9 @@ export function RegisterForm() {
     setLoading(true);
     try {
       await register(parsed.data.name, parsed.data.email, parsed.data.password);
-      notify.success("Account created successfully");
+      notify.success("Account ready", {
+        description: "You're signed in and can create boards now.",
+      });
       router.push("/boards");
     } catch (error) {
       notify.error(error, "Failed to create account");

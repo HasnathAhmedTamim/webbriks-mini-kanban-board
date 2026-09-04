@@ -73,7 +73,9 @@ export function TaskModal({
           targetPosition: target?.tasks.length || 0,
         });
       }
-      notify.success("Task updated successfully");
+      notify.success("Task saved", {
+        description: "Your changes are up to date.",
+      });
       onClose();
     } catch (error) {
       notify.error(error, "Failed to update task");
