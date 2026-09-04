@@ -39,7 +39,7 @@ export function RegisterForm() {
       notify.success("You’re all set!", {
         description: "Your account is ready — let’s go.",
       });
-      router.push("/boards");
+      router.replace("/boards");
     } catch (error) {
       notify.error(error, "We couldn’t create your account. Try another email.");
     } finally {

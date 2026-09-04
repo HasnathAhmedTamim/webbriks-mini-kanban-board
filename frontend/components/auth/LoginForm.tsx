@@ -37,7 +37,7 @@ export function LoginForm() {
       notify.success("Welcome back!", {
         description: "Taking you to your boards.",
       });
-      router.push("/boards");
+      router.replace("/boards");
     } catch (error) {
       notify.error(error, "We couldn’t sign you in. Check your email and password.");
     } finally {

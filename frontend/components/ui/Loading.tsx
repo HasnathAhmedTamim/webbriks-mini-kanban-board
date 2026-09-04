@@ -25,3 +25,27 @@ export function BoardSkeleton() {
     </div>
   );
 }
+
+export function KanbanSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-4 w-28 animate-pulse rounded bg-[var(--line)]" />
+      <div className="h-8 w-48 animate-pulse rounded bg-[var(--line)]" />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="w-full animate-pulse rounded-lg border border-[var(--line)] bg-[var(--surface)] lg:w-72"
+          >
+            <div className="h-12 rounded-t-lg bg-[var(--accent-soft)]" />
+            <div className="space-y-2 p-3">
+              <div className="h-16 rounded-lg bg-[var(--canvas)]" />
+              <div className="h-16 rounded-lg bg-[var(--canvas)]" />
+              <div className="h-10 rounded-lg bg-[var(--canvas)]" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

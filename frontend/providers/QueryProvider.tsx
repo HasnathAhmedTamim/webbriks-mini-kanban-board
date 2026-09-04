@@ -10,9 +10,15 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 10_000,
+            // Keep list/detail data warm while navigating between boards.
+            staleTime: 30_000,
+            gcTime: 5 * 60_000,
             retry: 1,
             refetchOnWindowFocus: false,
+            refetchOnReconnect: true,
+          },
+          mutations: {
+            retry: 0,
           },
         },
       })

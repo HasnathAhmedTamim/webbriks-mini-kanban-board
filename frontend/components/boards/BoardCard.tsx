@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import type { BoardSummary } from "@/types";
+import { prefetchBoard } from "@/hooks/useBoards";
 import { Dropdown } from "@/components/ui/Dropdown";
 
 type BoardCardProps = {
@@ -22,6 +24,7 @@ function formatRelative(value: string) {
 }
 
 export function BoardCard({ board, currentUserId, onRename, onShare, onDelete }: BoardCardProps) {
+  const qc = useQueryClient();
   const isOwner = board.ownerId === currentUserId;
   const members = board.members || [];
   const shown = members.slice(0, 3);
@@ -33,26 +36,42 @@ export function BoardCard({ board, currentUserId, onRename, onShare, onDelete }:
     ...(isOwner && onDelete ? [{ label: "Delete", onClick: () => onDelete(board), danger: true }] : []),
   ];
 
+  const warmBoard = () => {
+    void prefetchBoard(qc, board.id);
+  };
+
   return (
-    <article className="group relative flex h-full flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm transition hover:border-[var(--accent)]/30">
+    <article className="group relative flex h-full flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm transition duration-200 hover:border-[var(--accent)]/30 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/boards/${board.id}`}
-          className="text-base font-semibold text-[var(--ink)] hover:text-[var(--accent)]"
+          onMouseEnter={warmBoard}
+          onFocus={warmBoard}
+          className="min-w-0 flex-1 text-base font-semibold text-[var(--ink)] transition-colors hover:text-[var(--accent)]"
         >
-          {board.name}
+          <span className="absolute inset-0 rounded-lg" aria-hidden />
+          <span className="relative z-10">{board.name}</span>
         </Link>
-        <Dropdown items={menuItems} label={`Actions for ${board.name}`} />
+        <div className="relative z-20">
+          <Dropdown items={menuItems} label={`Actions for ${board.name}`} />
+        </div>
       </div>
 
-      <p className="mt-3 text-sm text-[var(--muted)]">
-        {board._count?.columns ?? 0} Columns · {board._count?.tasks ?? 0} Tasks
+      <p className="relative z-10 mt-3 text-sm text-[var(--muted)] pointer-events-none">
+        <span className="sm:hidden">
+          {board._count?.columns ?? 0} col · {board._count?.tasks ?? 0} tasks
+        </span>
+        <span className="hidden sm:inline">
+          {board._count?.columns ?? 0} Columns · {board._count?.tasks ?? 0} Tasks
+        </span>
       </p>
       {board.updatedAt ? (
-        <p className="mt-1 text-xs text-[var(--muted)]">{formatRelative(board.updatedAt)}</p>
+        <p className="relative z-10 mt-1 text-xs text-[var(--muted)] pointer-events-none">
+          {formatRelative(board.updatedAt)}
+        </p>
       ) : null}
 
-      <div className="mt-auto flex items-center pt-4">
+      <div className="relative z-10 mt-auto flex items-center pt-4 pointer-events-none">
         <div className="flex -space-x-2">
           {shown.length > 0
             ? shown.map((m) => (

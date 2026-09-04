@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { Columns3, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBoard, useCreateColumn } from "@/hooks/useBoards";
 import { getErrorMessage } from "@/lib/utils";
@@ -12,7 +13,7 @@ import { ShareBoardModal } from "@/components/boards/ShareBoardModal";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Loading } from "@/components/ui/Loading";
+import { KanbanSkeleton } from "@/components/ui/Loading";
 import { Modal } from "@/components/ui/Modal";
 
 export default function BoardDetailPage() {
@@ -32,7 +33,25 @@ export default function BoardDetailPage() {
     }
   }, [isLoading, user, router]);
 
-  if (isLoading || !user || boardQuery.isLoading) return <Loading label="Loading board…" />;
+  if (isLoading || !user) {
+    return (
+      <AppShell>
+        <main className="px-3 py-4 sm:px-6 sm:py-5">
+          <KanbanSkeleton />
+        </main>
+      </AppShell>
+    );
+  }
+
+  if (boardQuery.isLoading && !boardQuery.data) {
+    return (
+      <AppShell>
+        <main className="px-3 py-4 sm:px-6 sm:py-5">
+          <KanbanSkeleton />
+        </main>
+      </AppShell>
+    );
+  }
 
   if (boardQuery.isError || !boardQuery.data) {
     return (
@@ -55,23 +74,38 @@ export default function BoardDetailPage() {
   return (
     <AppShell
       headerActions={
-        <div className="flex gap-2">
-          <Button variant="secondary" type="button" onClick={() => setShareOpen(true)}>
-            Share
+        <>
+          <Button
+            variant="secondary"
+            type="button"
+            className="px-2.5 sm:px-3.5"
+            aria-label="Share board"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Share</span>
           </Button>
-          <Button type="button" onClick={() => setColumnOpen(true)}>
-            + Add Column
+          <Button
+            type="button"
+            className="px-2.5 sm:px-3.5"
+            aria-label="Add column"
+            onClick={() => setColumnOpen(true)}
+          >
+            <Columns3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Column</span>
           </Button>
-        </div>
+        </>
       }
     >
-      <main className="px-4 py-5 sm:px-6">
-        <div className="mb-5">
+      <main className="px-3 py-4 sm:px-6 sm:py-5">
+        <div className="mb-4 sm:mb-5">
           <Link href="/boards?view=owned" className="text-sm text-[var(--accent)] hover:underline">
             Back to Boards
           </Link>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-[var(--ink)]">{board.name}</h1>
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="min-w-0 break-words text-xl font-semibold text-[var(--ink)] sm:text-2xl">
+              {board.name}
+            </h1>
             <div className="flex -space-x-2">
               {board.members.slice(0, 4).map((member) => (
                 <div
@@ -101,11 +135,17 @@ export default function BoardDetailPage() {
           onClose={() => setColumnOpen(false)}
           footer={
             <>
-              <Button variant="secondary" type="button" onClick={() => setColumnOpen(false)}>
+              <Button
+                variant="secondary"
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => setColumnOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
+                className="w-full sm:w-auto"
                 loading={createColumn.isPending}
                 onClick={async () => {
                   try {

@@ -28,7 +28,37 @@
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   color: var(--ink);
   font-family: var(--font-outfit), "Segoe UI", sans-serif;
   background: var(--canvas);
+  overflow-x: hidden;
+}
+
+/* Soft fade when switching App Router pages */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
+}
+
+/* Smooth horizontal board scrolling on touch devices */
+.snap-x {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }

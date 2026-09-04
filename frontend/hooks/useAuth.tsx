@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { authStorage, type StoredUser } from "@/lib/auth";
 import type { AuthResponse } from "@/types";
@@ -17,6 +18,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<StoredUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
         });
         authStorage.setSession(data.data.token, data.data.user);
+        // Drop any previous user's cached boards before loading the new session.
+        queryClient.clear();
         setUser(data.data.user);
         setToken(data.data.token);
       },
@@ -48,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
         });
         authStorage.setSession(data.data.token, data.data.user);
+        queryClient.clear();
         setUser(data.data.user);
         setToken(data.data.token);
       },
@@ -55,9 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authStorage.clear();
         setUser(null);
         setToken(null);
+        queryClient.clear();
       },
     }),
-    [user, token, isLoading]
+    [user, token, isLoading, queryClient]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

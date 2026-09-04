@@ -11,6 +11,7 @@ import { CreateBoardModal } from "@/components/boards/CreateBoardModal";
 import { ShareBoardModal } from "@/components/boards/ShareBoardModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { BoardSkeleton, Loading } from "@/components/ui/Loading";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { BoardSummary } from "@/types";
 import { useBoard } from "@/hooks/useBoards";
@@ -61,16 +62,17 @@ export default function BoardsPageClient() {
       boardView={filter === "all" ? "owned" : filter}
       onBoardViewChange={(view) => {
         setFilter(view);
-        router.replace(`/boards?view=${view}`);
       }}
       onCreateBoard={() => setCreateOpen(true)}
       headerActions={
-        <Button type="button" onClick={() => setCreateOpen(true)}>
-          + Create Board
+        <Button type="button" className="px-2.5 sm:px-3.5" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          <span className="sm:hidden">Create</span>
+          <span className="hidden sm:inline">Create Board</span>
         </Button>
       }
     >
-      <main className="space-y-8 px-4 py-6 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-5 sm:px-6 sm:py-6">
         {boardsQuery.isLoading ? <BoardSkeleton /> : null}
 
         {boardsQuery.isError ? (
