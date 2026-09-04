@@ -110,8 +110,8 @@ export default function BoardDetailPage() {
                 onClick={async () => {
                   try {
                     await createColumn.mutateAsync(columnName.trim());
-                    notify.success("Column added", {
-                      description: `“${columnName.trim()}” is ready for tasks.`,
+                    notify.success("New column ready", {
+                      description: `You can add cards to “${columnName.trim()}” now.`,
                     });
                     setColumnName("");
                     setColumnOpen(false);

@@ -73,12 +73,12 @@ export function TaskModal({
           targetPosition: target?.tasks.length || 0,
         });
       }
-      notify.success("Task saved", {
-        description: "Your changes are up to date.",
+      notify.success("Changes saved", {
+        description: "Your card looks up to date.",
       });
       onClose();
     } catch (error) {
-      notify.error(error, "Failed to update task");
+      notify.error(error, "We couldn’t save your changes.");
     }
   }
 

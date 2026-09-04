@@ -61,12 +61,12 @@ export function CreateTaskModal({
         title: parsed.data.title,
         description: parsed.data.description,
       });
-      notify.success("Task added", {
-        description: `“${parsed.data.title}” is in the selected column.`,
+      notify.success("Card added", {
+        description: `“${parsed.data.title}” is on your board.`,
       });
       onClose();
     } catch (error) {
-      notify.error(error, "Failed to create task");
+      notify.error(error, "We couldn’t add that card. Please try again.");
     }
   }
 

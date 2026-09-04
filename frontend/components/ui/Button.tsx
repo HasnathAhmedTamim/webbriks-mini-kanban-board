@@ -21,7 +21,7 @@ export function Button({
   className,
   variant = "primary",
   loading,
-  loadingText = "Please wait…",
+  loadingText = "One moment…",
   children,
   disabled,
   ...props

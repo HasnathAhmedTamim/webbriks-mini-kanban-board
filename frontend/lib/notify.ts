@@ -1,12 +1,10 @@
 import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/utils";
-
-const FRIENDLY_403 = "You don't have permission to do that.";
 
 type FeedbackOptions = {
   description?: string;
 };
 
+/** Plain-language feedback for people using the app — not developers. */
 export const notify = {
   success(title: string, options?: FeedbackOptions) {
     toast.success(title, {
@@ -14,14 +12,27 @@ export const notify = {
       duration: 3500,
     });
   },
-  error(error: unknown, fallback = "Something went wrong. Please try again.") {
-    const status = (error as { response?: { status?: number } })?.response?.status;
-    const message = status === 403 ? FRIENDLY_403 : getErrorMessage(error, fallback);
-    toast.error(message, {
-      description: status === 403 ? "Ask the board owner if you need access." : undefined,
-      duration: 4500,
-    });
+
+  /** Always shows a friendly message. Never dumps raw API text. */
+  error(_error: unknown, message = "That didn’t work. Please try again.") {
+    const status = (_error as { response?: { status?: number } })?.response?.status;
+    if (status === 403) {
+      toast.error("You don’t have access to do that", {
+        description: "Ask the board owner if you need help.",
+        duration: 4500,
+      });
+      return;
+    }
+    if (status === 401) {
+      toast.error("Please sign in again", {
+        description: "Your session ended.",
+        duration: 4500,
+      });
+      return;
+    }
+    toast.error(message, { duration: 4500 });
   },
+
   message(title: string, options?: FeedbackOptions) {
     toast.message(title, {
       description: options?.description,

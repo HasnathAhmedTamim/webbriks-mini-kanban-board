@@ -247,7 +247,7 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
                 if (!renameColumn) return;
                 const parsed = columnNameSchema.safeParse({ name: renameValue });
                 if (!parsed.success) {
-                  notify.message(parsed.error.issues[0]?.message || "Invalid name");
+                  notify.message(parsed.error.issues[0]?.message || "Please enter a name");
                   return;
                 }
                 try {
@@ -256,11 +256,11 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
                     name: parsed.data.name,
                   });
                   notify.success("Column renamed", {
-                    description: `Now called “${parsed.data.name}”.`,
+                    description: `It’s now called “${parsed.data.name}”.`,
                   });
                   setRenameColumn(null);
                 } catch (error) {
-                  notify.error(error, "Failed to rename column");
+                  notify.error(error, "We couldn’t rename that column.");
                 }
               }}
             >
@@ -286,12 +286,12 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
           if (!deleteColumnTarget) return;
           try {
             await deleteColumn.mutateAsync(deleteColumnTarget.id);
-            notify.success("Column deleted", {
-              description: `“${deleteColumnTarget.name}” and its tasks were removed.`,
+            notify.success("Column removed", {
+              description: `“${deleteColumnTarget.name}” and its cards are gone.`,
             });
             setDeleteColumnTarget(null);
           } catch (error) {
-            notify.error(error, "Failed to delete column");
+            notify.error(error, "We couldn’t remove that column.");
           }
         }}
       />
@@ -306,12 +306,12 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
           if (!deleteTaskTarget) return;
           try {
             await deleteTask.mutateAsync(deleteTaskTarget.id);
-            notify.success("Task deleted", {
-              description: `“${deleteTaskTarget.title}” was removed.`,
+            notify.success("Card removed", {
+              description: `“${deleteTaskTarget.title}” is gone.`,
             });
             setDeleteTaskTarget(null);
           } catch (error) {
-            notify.error(error, "Failed to delete task");
+            notify.error(error, "We couldn’t remove that card.");
           }
         }}
       />

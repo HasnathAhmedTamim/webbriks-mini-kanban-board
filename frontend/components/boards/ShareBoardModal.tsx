@@ -25,12 +25,15 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
     if (!isOwner) return;
     try {
       await shareBoard.mutateAsync(email.trim().toLowerCase());
-      notify.success("Member added", {
-        description: `${email.trim()} can now open this board.`,
+      notify.success("They’re in!", {
+        description: `${email.trim()} can open this board now.`,
       });
       setEmail("");
     } catch (error) {
-      notify.error(error, "We couldn’t add that person. Make sure they’re registered.");
+      notify.error(
+        error,
+        "We couldn’t add them. Make sure they already have an account with that email."
+      );
     }
   }
 
@@ -64,11 +67,11 @@ export function ShareBoardModal({ open, onClose, board, isOwner }: ShareBoardMod
                     onClick={async () => {
                       try {
                         await removeMember.mutateAsync(member.userId);
-                        notify.success("Member removed", {
-                          description: "They no longer have access to this board.",
+                        notify.success("Access removed", {
+                          description: "They can no longer see this board.",
                         });
                       } catch (error) {
-                        notify.error(error, "We couldn’t remove that member.");
+                        notify.error(error, "We couldn’t remove them. Please try again.");
                       }
                     }}
                   >

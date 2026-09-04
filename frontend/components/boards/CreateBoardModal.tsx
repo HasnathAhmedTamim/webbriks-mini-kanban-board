@@ -45,18 +45,23 @@ export function CreateBoardModal({
     try {
       if (mode === "rename" && boardId) {
         await updateBoard.mutateAsync({ boardId, name: parsed.data.name });
-        notify.success("Board renamed", {
-          description: `New name: “${parsed.data.name}”`,
+        notify.success("Name updated", {
+          description: `Your board is now called “${parsed.data.name}”.`,
         });
       } else {
         await createBoard.mutateAsync(parsed.data.name);
-        notify.success("Board created", {
-          description: `“${parsed.data.name}” is ready — open it to add tasks.`,
+        notify.success("Nice — board created!", {
+          description: `Open “${parsed.data.name}” to start adding work.`,
         });
       }
       onClose();
     } catch (err) {
-      notify.error(err, mode === "rename" ? "Failed to rename board" : "Failed to create board");
+      notify.error(
+        err,
+        mode === "rename"
+          ? "We couldn’t rename that board. Please try again."
+          : "We couldn’t create that board. Please try again."
+      );
     }
   }
 

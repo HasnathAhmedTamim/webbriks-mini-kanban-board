@@ -34,12 +34,12 @@ export function LoginForm() {
     setLoading(true);
     try {
       await login(parsed.data.email, parsed.data.password);
-      notify.success("You're signed in", {
-        description: "Opening your boards…",
+      notify.success("Welcome back!", {
+        description: "Taking you to your boards.",
       });
       router.push("/boards");
     } catch (error) {
-      notify.error(error, "Failed to sign in");
+      notify.error(error, "We couldn’t sign you in. Check your email and password.");
     } finally {
       setLoading(false);
     }
