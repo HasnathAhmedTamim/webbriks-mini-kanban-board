@@ -62,7 +62,8 @@ export default function BoardsPageClient() {
   }, [isLoading, user, router]);
 
   useEffect(() => {
-    if (!searchParams.get("view")) {
+    const view = searchParams.get("view");
+    if (view !== "owned" && view !== "shared") {
       router.replace("/boards?view=owned", { scroll: false });
     }
   }, [searchParams, router]);

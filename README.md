@@ -37,7 +37,6 @@ Collaborative kanban board for the **Webbriks Technical Assessment** — auth, b
 .
 ├── frontend/           # Next.js App Router
 ├── backend/            # Express + Prisma API
-├── postman/            # API collection
 ├── docker-compose.yml
 ├── .env.example
 └── README.md
@@ -174,9 +173,6 @@ PATCH /api/tasks/:id/move
 ```
 
 Positions are reindexed in a transaction. Board membership is required — knowing a task ID alone is not enough.
-
-Full request/response examples: import [`postman/Mini-Kanban-API.postman_collection.json`](postman/Mini-Kanban-API.postman_collection.json).  
-Suggested flow: **Register → Login → Create Board → Create Task → Move Task**.
 
 ---
 
