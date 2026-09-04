@@ -272,12 +272,3 @@ Positions are reindexed in a transaction. Board membership is required.
 Local Docker / `npm run dev` use **local Postgres** by default. Neon is for the live API.
 
 ---
-
-## Submission
-
-This repository is ready for the Webbriks form:
-
-- Single repo with `frontend/` and `backend/`
-- Setup instructions + sample env in this README
-- `docker-compose.yml` for local Postgres and optional full stack
-- Live demo links above
