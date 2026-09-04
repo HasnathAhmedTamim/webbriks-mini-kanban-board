@@ -17,6 +17,18 @@ app.use(
 );
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "Mini Kanban API",
+    data: {
+      health: "/api/health",
+      apiBase: "/api",
+      docs: "See README for endpoints",
+    },
+  });
+});
+
 app.use("/api", routes);
 
 app.use(notFoundMiddleware);

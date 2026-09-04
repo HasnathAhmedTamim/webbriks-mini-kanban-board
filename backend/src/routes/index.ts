@@ -7,6 +7,18 @@ import userRoutes from "../modules/users/user.routes";
 
 const router = Router();
 
+router.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "Mini Kanban API base",
+    data: {
+      health: "/api/health",
+      auth: ["/api/auth/register", "/api/auth/login"],
+      boards: "/api/boards",
+    },
+  });
+});
+
 router.get("/health", (_req, res) => {
   res.json({ success: true, data: { status: "ok" } });
 });
