@@ -77,7 +77,10 @@ export function useDeleteBoard() {
     mutationFn: async (boardId: string) => {
       await api.delete(`/boards/${boardId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards"] }),
+    onSuccess: (_data, boardId) => {
+      qc.removeQueries({ queryKey: ["boards", boardId] });
+      qc.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
 }
 
@@ -88,7 +91,10 @@ export function useShareBoard(boardId: string) {
       const { data } = await api.post(`/boards/${boardId}/members`, { email });
       return data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["boards", boardId] });
+      qc.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
 }
 
@@ -98,7 +104,10 @@ export function useRemoveMember(boardId: string) {
     mutationFn: async (userId: string) => {
       await api.delete(`/boards/${boardId}/members/${userId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["boards", boardId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["boards", boardId] });
+      qc.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
 }
 

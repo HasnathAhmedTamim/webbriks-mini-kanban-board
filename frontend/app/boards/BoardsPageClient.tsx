@@ -17,6 +17,7 @@ import { ShareBoardModal } from "@/components/boards/ShareBoardModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { BoardSkeleton, Loading } from "@/components/ui/Loading";
 import { Button } from "@/components/ui/Button";
+import { StatusPage } from "@/components/ui/StatusPage";
 import type { BoardSummary } from "@/types";
 
 function parseView(value: string | null): BoardView {
@@ -77,14 +78,22 @@ export default function BoardsPageClient() {
 
   if (isLoading || !user) return <Loading />;
 
+  if (boardsQuery.isError) {
+    return (
+      <StatusPage
+        code="Error"
+        title="Couldn’t load boards"
+        description="Something went wrong while loading your boards. Refresh the page to try again."
+        primaryLabel="Refresh"
+        onPrimary={() => boardsQuery.refetch()}
+      />
+    );
+  }
+
   return (
     <>
       <main className="mx-auto w-full max-w-6xl space-y-8 px-4 py-5 sm:px-6 sm:py-6">
         {boardsQuery.isLoading ? <BoardSkeleton /> : null}
-
-        {boardsQuery.isError ? (
-          <p className="text-sm text-[var(--danger)]">Failed to load boards. Please refresh.</p>
-        ) : null}
 
         {!boardsQuery.isLoading && showOwned ? (
           <section>

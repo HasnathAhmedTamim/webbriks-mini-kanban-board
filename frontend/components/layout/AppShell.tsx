@@ -9,7 +9,7 @@ import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-export type BoardView = "all" | "owned" | "shared";
+export type BoardView = "owned" | "shared";
 
 type AppShellProps = {
   children: React.ReactNode;

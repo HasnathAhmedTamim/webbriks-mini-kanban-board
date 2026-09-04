@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
+import axios from "axios";
 import { Columns3, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBoard, useCreateColumn } from "@/hooks/useBoards";
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/Input";
 import { KanbanSkeleton } from "@/components/ui/Loading";
 import { Modal } from "@/components/ui/Modal";
 import { RoleBadge } from "@/components/ui/RoleBadge";
+import { StatusPage } from "@/components/ui/StatusPage";
 
 export default function BoardDetailPage() {
   const params = useParams<{ boardId: string }>();
@@ -80,15 +82,27 @@ export default function BoardDetailPage() {
   }
 
   if (boardQuery.isError || !boardQuery.data) {
+    const status = axios.isAxiosError(boardQuery.error)
+      ? boardQuery.error.response?.status
+      : undefined;
+
+    if (status === 404) {
+      notFound();
+    }
+
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-[var(--danger)]">
-          {getErrorMessage(boardQuery.error, "Board not found")}
-        </p>
-        <Link href="/boards" className="mt-4 inline-block text-[var(--accent)] hover:underline">
-          Back to Boards
-        </Link>
-      </main>
+      <StatusPage
+        code={status === 403 ? "403" : "Error"}
+        title={status === 403 ? "Access denied" : "Board unavailable"}
+        description={getErrorMessage(
+          boardQuery.error,
+          status === 403
+            ? "You don’t have access to this board."
+            : "This board couldn’t be loaded. It may have been deleted."
+        )}
+        primaryHref="/boards?view=owned"
+        primaryLabel="Back to boards"
+      />
     );
   }
 
